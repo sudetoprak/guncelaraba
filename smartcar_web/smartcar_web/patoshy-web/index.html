@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Patoshy — Akıllı RC Araç Ekosistemi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <canvas id="loaderCanvas"></canvas>
+  <div class="loader-content">
+    <div class="loader-hex">⬡</div>
+    <div class="loader-title">PATOSHY</div>
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-wrap">
+    <a class="nav-logo" href="#" onclick="showPage('home');return false">
+      <div class="logo-hex">⬡</div>
+      <span>patoshy</span>
+    </a>
+    <div class="nav-center" id="navLinks">
+      <a class="nl" data-page="home" href="#" onclick="showPage('home');return false">Ana Sayfa</a>
+      <a class="nl" data-page="products" href="#" onclick="showPage('products');return false">Ürünler</a>
+      <a class="nl" href="#" onclick="goFeatures();return false">Özellikler</a>
+    </div>
+    <div class="nav-right">
+      <button class="nav-icon" onclick="showPage('cart')" title="Sepet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-dot" id="cartCount">0</span>
+      </button>
+      <button class="nav-auth-btn" id="authBtn" onclick="showPage('auth')">Giriş Yap</button>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<div id="toastContainer"></div>
+<!-- Fly-to-cart element -->
+<div id="flyItem"></div>
+
+<!-- ═══════ HOME ═══════ -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="particleCanvas"></canvas>
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="hero-eyebrow"><span class="eyebrow-dot"></span>Yeni Nesil RC Teknolojisi</div>
+        <h1 class="hero-h1">
+          <span class="line-wrap"><span class="line-anim">Aracını</span></span>
+          <span class="line-wrap"><span class="line-anim delay-1"><em class="grad">Akıllıca</em></span></span>
+          <span class="line-wrap"><span class="line-anim delay-2">Sür.</span></span>
+        </h1>
+        <p class="hero-p line-anim delay-3">ESP-32 teknolojisi, WebSocket kontrol ve e-ticaret platformunun birleştiği yenilikçi RC araç ekosistemi. Mobil uygulamadan web'e, donanımdan buluta.</p>
+        <div class="hero-btns line-anim delay-4">
+          <button class="btn-glow" onclick="showPage('products')">
+            Ürünleri Keşfet
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <button class="btn-ghost" onclick="goFeatures()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            Nasıl Çalışır?
+          </button>
+        </div>
+        <div class="hero-chips line-anim delay-5">
+          <div class="chip">ESP-32</div>
+          <div class="chip">L298N</div>
+          <div class="chip">WebSocket</div>
+          <div class="chip">&lt;50ms</div>
+          <div class="chip">Flutter</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-glow-ball"></div>
+        <div class="hero-img-wrap parallax-hero" data-speed="0.3">
+          <div class="hero-ring ring-1"></div>
+          <div class="hero-ring ring-2"></div>
+          <div class="hero-ring ring-3"></div>
+          <img src="img/anasayfa.png" alt="Patoshy RC Araç" class="hero-car float-img" id="heroCar">
+          <div class="hero-tag tag-a">WiFi</div>
+          <div class="hero-tag tag-b">4WD</div>
+          <div class="hero-tag tag-c">&lt;50ms</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Kaydır</span>
+      <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-band">
+    <div class="marquee-track">
+      <span>ESP-32</span><span class="mx">✦</span>
+      <span>L298N Motor Sürücü</span><span class="mx">✦</span>
+      <span>LiPo 7.4V</span><span class="mx">✦</span>
+      <span>WebSocket &lt;50ms</span><span class="mx">✦</span>
+      <span>Flutter iOS &amp; Android</span><span class="mx">✦</span>
+      <span>FastAPI Backend</span><span class="mx">✦</span>
+      <span>MongoDB</span><span class="mx">✦</span>
+      <span>DDoS Koruması</span><span class="mx">✦</span>
+      <span>QR Bağlantı</span><span class="mx">✦</span>
+      <span>4WD Sürüş</span><span class="mx">✦</span>
+      <!-- Duplicate for seamless loop -->
+      <span>ESP-32</span><span class="mx">✦</span>
+      <span>L298N Motor Sürücü</span><span class="mx">✦</span>
+      <span>LiPo 7.4V</span><span class="mx">✦</span>
+      <span>WebSocket &lt;50ms</span><span class="mx">✦</span>
+      <span>Flutter iOS &amp; Android</span><span class="mx">✦</span>
+      <span>FastAPI Backend</span><span class="mx">✦</span>
+      <span>MongoDB</span><span class="mx">✦</span>
+      <span>DDoS Koruması</span><span class="mx">✦</span>
+      <span>QR Bağlantı</span><span class="mx">✦</span>
+      <span>4WD Sürüş</span><span class="mx">✦</span>
+    </div>
+  </div>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="section prod-section">
+    <div class="container">
+      <div class="sec-hd" data-reveal>
+        <div class="sec-tag">Ürün Ailesi</div>
+        <h2>Patoshy Serisi</h2>
+        <p>Her ihtiyaca uygun model, sınırsız deneyim</p>
+      </div>
+      <div class="pg" id="featuredProducts">
+        <div class="pskel"></div><div class="pskel"></div><div class="pskel"></div>
+      </div>
+      <div class="sec-more" data-reveal>
+        <button class="btn-outline" onclick="showPage('products')">
+          Tüm Ürünleri Gör
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY PATOSHY (detailed) -->
+  <section class="section why-section" id="features-section">
+    <div class="container">
+      <div class="sec-hd" data-reveal>
+        <div class="sec-tag">Neden Patoshy?</div>
+        <h2>Rakipsiz Teknoloji</h2>
+        <p>Her detayda mühendislik öncelikli tasarım</p>
+      </div>
+
+      <!-- Big feature blocks -->
+      <div class="why-grid">
+        <div class="why-block why-main" data-reveal>
+          <div class="why-icon-big">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div class="why-main-content">
+            <div class="why-kpi">50ms</div>
+            <h3>WebSocket Hızı</h3>
+            <p>Klasik HTTP polling yerine kalıcı WebSocket bağlantısı sayesinde komutlarınız 50 milisaniyenin altında arabaya ulaşır. Gerçek zamanlı kontrol deneyimi, sıfır gecikme hissi.</p>
+            <ul class="why-list">
+              <li>Düşük gecikmeli çift yönlü iletişim</li>
+              <li>Bağlantı kopunca 3 saniyede yeniden bağlanır</li>
+              <li>Her komut gecikme süresiyle MongoDB'ye loglanır</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="why-col">
+          <div class="why-card" data-reveal>
+            <div class="why-card-icon shield">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h4>Çok Katmanlı Güvenlik</h4>
+            <p>DDoS middleware, rate limiting (60 req/dk), IP kara listesi, JWT kimlik doğrulama ve bcrypt şifreleme. Saldırılara karşı her katmanda savunma.</p>
+            <div class="why-stat-row">
+              <span class="wstat">60 req/dk</span>
+              <span class="wstat">IP Blok</span>
+              <span class="wstat">JWT</span>
+            </div>
+          </div>
+          <div class="why-card" data-reveal>
+            <div class="why-card-icon mobile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            </div>
+            <h4>QR ile Anlık Bağlantı</h4>
+            <p>Karmaşık konfigürasyon yok. Mobil uygulamada QR kodu tara, saniyeler içinde araçla bağlantı kur. iOS ve Android'de sorunsuz çalışır.</p>
+            <div class="why-stat-row">
+              <span class="wstat">iOS 14+</span>
+              <span class="wstat">Android 10+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature grid -->
+      <div class="feat-grid">
+        <div class="feat-item" data-reveal>
+          <div class="fi-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div>
+            <h5>Canlı Komut Loglama</h5>
+            <p>Her joystick komutu; yön, hız (0-255 PWM), gecikme ms ve IP adresiyle MongoDB'ye yazılır. Admin panelinde anlık takip.</p>
+          </div>
+        </div>
+        <div class="feat-item" data-reveal>
+          <div class="fi-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+          <div>
+            <h5>Modüler Ekosistem</h5>
+            <p>Basic modelden başla, kamera ve sensör modülleri ile büyüt. Her bileşen bağımsız takılıp çıkarılabilir tasarım.</p>
+          </div>
+        </div>
+        <div class="feat-item" data-reveal>
+          <div class="fi-icon pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div>
+          <div>
+            <h5>Detaylı Analitik</h5>
+            <p>Hız kademesi istatistikleri, oturum süreleri, bağlantı kalitesi. Tüm veriler admin panelinde görselleştirilir.</p>
+          </div>
+        </div>
+        <div class="feat-item" data-reveal>
+          <div class="fi-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg></div>
+          <div>
+            <h5>4WD Sürüş Sistemi</h5>
+            <p>L298N motor sürücüsü kontrolünde 4 DC motor. İleri, geri, sol, sağ ve dur komutları PWM hız kontrolüyle.</p>
+          </div>
+        </div>
+        <div class="feat-item" data-reveal>
+          <div class="fi-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+          <div>
+            <h5>Güvenli Ödeme</h5>
+            <p>SSL şifreli ödeme altyapısı, JWT token yönetimi ve bcrypt şifreleme ile verileriniz her zaman güvende.</p>
+          </div>
+        </div>
+        <div class="feat-item" data-reveal>
+          <div class="fi-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div>
+            <h5>500+ Eş Zamanlı Kullanıcı</h5>
+            <p>FastAPI ASGI mimarisi ve MongoDB async sürücüsü ile yüksek eş zamanlılık. %99.5 uptime hedefi.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row" data-reveal>
+        <div class="stat-box">
+          <div class="stat-num" data-count="50">0</div>
+          <div class="stat-unit">ms</div>
+          <div class="stat-label">Kontrol Gecikmesi</div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-box">
+          <div class="stat-num" data-count="500">0</div>
+          <div class="stat-unit">+</div>
+          <div class="stat-label">Eş Zamanlı Kullanıcı</div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-box">
+          <div class="stat-num" data-count="99">0</div>
+          <div class="stat-unit">.5%</div>
+          <div class="stat-label">Uptime Hedefi</div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-box">
+          <div class="stat-num" data-count="6">0</div>
+          <div class="stat-unit">+</div>
+          <div class="stat-label">Güvenlik Katmanı</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section steps-section">
+    <div class="container">
+      <div class="sec-hd" data-reveal>
+        <div class="sec-tag">Nasıl Çalışır?</div>
+        <h2>3 Adımda Başla</h2>
+      </div>
+      <div class="steps-layout">
+        <div class="step-item" data-reveal>
+          <div class="step-n">01</div>
+          <div class="step-img-wrap">
+            <img src="img/basic.png" alt="Ürün Seç">
+          </div>
+          <h3>Ürününü Seç</h3>
+          <p>Basic, Cam veya Pro seriden ihtiyacına uygun modeli seç. Parça bazlı fiyat dökümünü incele, güvenle sipariş ver.</p>
+        </div>
+        <div class="step-arrow" data-reveal>
+          <svg viewBox="0 0 60 20" fill="none"><path d="M0 10h55M48 3l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="step-item" data-reveal>
+          <div class="step-n">02</div>
+          <div class="step-emoji-wrap">📱</div>
+          <h3>Uygulamayı İndir</h3>
+          <p>Patoshy Flutter uygulamasını iOS veya Android cihazına indir. Otomatik güncelleme, QR scanner ve joystick dahil.</p>
+        </div>
+        <div class="step-arrow" data-reveal>
+          <svg viewBox="0 0 60 20" fill="none"><path d="M0 10h55M48 3l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="step-item" data-reveal>
+          <div class="step-n">03</div>
+          <div class="step-emoji-wrap">🎮</div>
+          <h3>QR ile Bağlan, Sür!</h3>
+          <p>Araçtaki QR kodu tarat, WebSocket bağlantısı otomatik kurulur. Joystick ile 4 yönde tam kontrol başlar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <canvas id="ctaCanvas"></canvas>
+    <div class="container">
+      <div class="cta-inner" data-reveal>
+        <div class="cta-badge">Hemen Başla</div>
+        <h2>Geleceğin RC Aracına<br>Sahip Olmaya Hazır mısın?</h2>
+        <p>Ücretsiz üye ol, ürünleri incele ve ilk siparişini ver. 3 modelden sana en uygun olanı seç.</p>
+        <div class="cta-btns">
+          <button class="btn-white" onclick="showPage('auth')">
+            Ücretsiz Kayıt Ol
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <button class="btn-ghost-white" onclick="showPage('products')">Ürünleri Gör</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo"><div class="logo-hex">⬡</div><span>patoshy</span></div>
+          <p>Akıllı RC araç ekosistemi.<br>ESP-32'den buluta tam entegre platform.</p>
+          <div class="footer-tech">
+            <span>ESP-32</span><span>FastAPI</span><span>MongoDB</span><span>Flutter</span>
+          </div>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <h4>Ürünler</h4>
+            <a href="#" onclick="showPage('products');return false">Patoshy Basic</a>
+            <a href="#" onclick="showPage('products');return false">Patoshy Cam</a>
+            <a href="#" onclick="showPage('products');return false">Patoshy Pro</a>
+            <a href="#" onclick="showPage('products');return false">Aksesuarlar</a>
+          </div>
+          <div>
+            <h4>Hesabım</h4>
+            <a href="#" onclick="showPage('auth');return false">Giriş Yap</a>
+            <a href="#" onclick="showPage('auth');return false">Kayıt Ol</a>
+            <a href="#" onclick="showPage('orders');return false">Siparişlerim</a>
+            <a href="#" onclick="showPage('profile');return false">Profilim</a>
+          </div>
+          <div>
+            <h4>Platform</h4>
+            <a href="#">Admin Panel</a>
+            <a href="#">API Dokümantasyon</a>
+            <a href="#">Gizlilik Politikası</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 Patoshy. Tüm hakları saklıdır.</span>
+
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════ PRODUCTS ═══════ -->
+<div id="page-products" class="page">
+  <div class="page-hd">
+    <div class="container">
+      <h1>Ürün Kataloğu</h1>
+      <p>Patoshy RC araç ailesini keşfedin</p>
+    </div>
+  </div>
+  <div class="container" style="padding-top:2rem;padding-bottom:4rem">
+    <div class="filter-bar">
+      <div class="ftabs" id="filterTabs">
+        <button class="ft active" data-cat="">Tümü</button>
+        <button class="ft" data-cat="basic">Basic</button>
+        <button class="ft" data-cat="cam">Kameralı</button>
+        <button class="ft" data-cat="pro">Pro</button>
+        <button class="ft" data-cat="aksesuar">Aksesuar</button>
+      </div>
+      <select class="sort-sel" id="sortSelect" onchange="renderAllProducts()">
+        <option value="">Varsayılan</option>
+        <option value="price-asc">Fiyat: Düşük → Yüksek</option>
+        <option value="price-desc">Fiyat: Yüksek → Düşük</option>
+        <option value="name">İsme Göre</option>
+      </select>
+    </div>
+    <div class="pg" id="allProducts">
+      <div class="pskel"></div><div class="pskel"></div><div class="pskel"></div><div class="pskel"></div>
+    </div>
+    <div id="productsEmpty" class="empty-st" style="display:none">
+      <div class="empty-ico">📦</div>
+      <h3>Ürün bulunamadı</h3>
+      <p>Farklı bir kategori deneyin.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ DETAIL ═══════ -->
+<div id="page-detail" class="page">
+  <div class="container" id="productDetail" style="padding-top:5.5rem"></div>
+</div>
+
+<!-- ═══════ CART ═══════ -->
+<div id="page-cart" class="page">
+  <div class="page-hd"><div class="container"><h1>Sepetim</h1></div></div>
+  <div class="container cart-layout">
+    <div id="cartItems" class="cart-col"></div>
+    <div id="cartSide" class="sum-col" style="display:none">
+      <div class="sum-box">
+        <h3>Sipariş Özeti</h3>
+        <div class="sr"><span>Ara Toplam</span><span id="cartSubtotal">₺0</span></div>
+        <div class="sr"><span>Kargo</span><span class="free-tag">Ücretsiz</span></div>
+        <hr class="sum-hr">
+        <div class="sr sr-total"><span>Toplam</span><span id="cartTotal">₺0</span></div>
+        <button class="btn-glow btn-block" onclick="showPage('checkout')">
+          Siparişi Tamamla
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CHECKOUT ═══════ -->
+<div id="page-checkout" class="page">
+  <div class="page-hd"><div class="container"><h1>Sipariş Tamamla</h1></div></div>
+  <div class="container checkout-layout">
+    <div class="co-left">
+      <div class="co-sec">
+        <h3><span class="step-pill">1</span> Teslimat Adresi</h3>
+        <div class="fg2">
+          <div class="fg"><label>Cadde / Sokak</label><input type="text" id="street" placeholder="Atatürk Cad. No:15"></div>
+          <div class="fg"><label>Şehir</label><input type="text" id="city" placeholder="İstanbul"></div>
+          <div class="fg"><label>Ülke</label><input type="text" id="country" value="Türkiye"></div>
+          <div class="fg"><label>Posta Kodu</label><input type="text" id="zip" placeholder="34000"></div>
+        </div>
+      </div>
+      <div class="co-sec">
+        <h3><span class="step-pill">2</span> Ödeme Yöntemi</h3>
+        <div class="pay-grid">
+          <label class="pay-lbl"><input type="radio" name="pay" value="credit_card" checked><div class="pay-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Kredi/Banka Kartı</div></label>
+          <label class="pay-lbl"><input type="radio" name="pay" value="bank_transfer"><div class="pay-card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Havale / EFT</div></label>
+        </div>
+      </div>
+      <button class="btn-glow btn-xl" onclick="placeOrder()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        Siparişi Onayla
+      </button>
+    </div>
+    <div class="co-right">
+      <div class="sum-box">
+        <h3>Ürünler</h3>
+        <div id="checkoutItems"></div>
+        <hr class="sum-hr">
+        <div class="sr sr-total"><span>Toplam</span><span id="checkoutTotal">₺0</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ORDERS ═══════ -->
+<div id="page-orders" class="page">
+  <div class="page-hd"><div class="container"><h1>Siparişlerim</h1></div></div>
+  <div class="container" id="ordersList" style="padding:2rem 0 4rem"></div>
+</div>
+
+<!-- ═══════ AUTH ═══════ -->
+<div id="page-auth" class="page">
+  <div class="auth-layout">
+    <div class="auth-visual">
+      <canvas id="authCanvas"></canvas>
+      <div class="auth-vis-inner">
+        <img src="img/anasayfa.png" alt="Patoshy" class="auth-car float-img">
+        <p class="auth-quote">"Sürüşün geleceği<br>parmaklarınızın ucunda."</p>
+      </div>
+    </div>
+    <div class="auth-form-col">
+      <div class="auth-logo"><div class="logo-hex sm">⬡</div><span>patoshy</span></div>
+      <div class="auth-tabs">
+        <button class="at active" onclick="switchTab('login')">Giriş Yap</button>
+        <button class="at" onclick="switchTab('register')">Kayıt Ol</button>
+      </div>
+      <form id="loginForm" class="aform" onsubmit="handleLogin(event)">
+        <div class="fg"><label>E-posta</label><input type="email" id="loginEmail" placeholder="ornek@mail.com" required></div>
+        <div class="fg">
+          <label>Şifre</label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPassword" placeholder="••••••••" required>
+            <button type="button" class="pw-eye" onclick="togglePw('loginPassword')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="loginError" class="ferr"></div>
+        <button type="submit" class="btn-glow btn-block" id="loginBtn">Giriş Yap</button>
+      </form>
+      <form id="registerForm" class="aform" style="display:none" onsubmit="handleRegister(event)">
+        <div class="fg2">
+          <div class="fg"><label>Ad Soyad</label><input type="text" id="regFullName" placeholder="Ad Soyad" required></div>
+          <div class="fg"><label>Kullanıcı Adı</label><input type="text" id="regUsername" placeholder="kullanici_adi" required></div>
+        </div>
+        <div class="fg"><label>E-posta</label><input type="email" id="regEmail" placeholder="ornek@mail.com" required></div>
+        <div class="fg"><label>Şifre <small>(min 8 karakter)</small></label><input type="password" id="regPassword" placeholder="••••••••" minlength="8" required></div>
+        <div class="fg"><label>Telefon <small>(opsiyonel)</small></label><input type="text" id="regPhone" placeholder="+90 555 000 00 00"></div>
+        <div id="registerError" class="ferr"></div>
+        <button type="submit" class="btn-glow btn-block" id="registerBtn">Hesap Oluştur</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PROFILE ═══════ -->
+<div id="page-profile" class="page">
+  <div class="page-hd"><div class="container"><h1>Profilim</h1></div></div>
+  <div class="container" id="profileContent" style="padding:2rem 0 4rem"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

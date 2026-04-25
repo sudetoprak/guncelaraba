@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartCar Admin Panel</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ─── GİRİŞ EKRANI ─────────────────────────────────────── -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="logo-icon">🚗</span>
+        <h1>SmartCar</h1>
+        <p>Admin Panel</p>
+      </div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="login">Giriş Yap</button>
+        <button class="tab-btn" data-tab="register">Admin Kaydı</button>
+      </div>
+
+      <div id="tab-login">
+        <form id="login-form">
+          <div class="form-group">
+            <label>E-posta</label>
+            <input type="email" id="login-email" placeholder="admin@mail.com" required />
+          </div>
+          <div class="form-group">
+            <label>Şifre</label>
+            <input type="password" id="login-password" placeholder="••••••••" required />
+          </div>
+          <div id="login-error" class="alert alert-danger hidden"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="login-btn">Giriş Yap</button>
+        </form>
+      </div>
+
+      <div id="tab-register" class="hidden">
+        <div class="alert alert-info" style="margin-bottom:12px;font-size:13px;">
+          Bu form yalnızca <strong>ilk admin</strong> hesabı oluşturmak içindir.
+          Ek admin eklemek için panele giriş yapıp
+          <strong>Kullanıcılar → Admin Ekle</strong> butonunu kullanın.
+        </div>
+        <form id="register-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ad Soyad</label>
+              <input type="text" id="reg-fullname" placeholder="Ad Soyad" required />
+            </div>
+            <div class="form-group">
+              <label>Kullanıcı Adı</label>
+              <input type="text" id="reg-username" placeholder="admin" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>E-posta</label>
+            <input type="email" id="reg-email" placeholder="admin@mail.com" required />
+          </div>
+          <div class="form-group">
+            <label>Şifre</label>
+            <input type="password" id="reg-password" placeholder="En az 8 karakter" required />
+          </div>
+          <div class="form-group">
+            <label>Telefon <span style="color:var(--text-muted);font-weight:400">(opsiyonel)</span></label>
+            <input type="text" id="reg-phone" placeholder="+90 555 000 00 00" />
+          </div>
+          <div id="register-error" class="alert alert-danger hidden"></div>
+          <div id="register-success" class="alert alert-success hidden"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="register-btn">Hesap Oluştur</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── ANA PANEL ─────────────────────────────────────────── -->
+  <div id="app" class="hidden">
+
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">🚗</span>
+        <span>SmartCar Admin</span>
+      </div>
+      <nav>
+        <a href="#dashboard" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="#users" class="nav-item" data-page="users">
+          <span class="nav-icon">👥</span> Kullanıcılar
+        </a>
+        <a href="#orders" class="nav-item" data-page="orders">
+          <span class="nav-icon">📦</span> Siparişler
+        </a>
+        <a href="#products" class="nav-item" data-page="products">
+          <span class="nav-icon">🛒</span> Ürünler
+        </a>
+        <a href="#logs" class="nav-item" data-page="logs">
+          <span class="nav-icon">📋</span> Komut Logları
+        </a>
+        <a href="#cars" class="nav-item" data-page="cars">
+          <span class="nav-icon">🚗</span> Bağlı Arabalar
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div id="sidebar-user"></div>
+        <button class="btn btn-ghost btn-full" id="logout-btn">Çıkış Yap</button>
+      </div>
+    </aside>
+
+    <main id="main">
+      <header id="topbar">
+        <h2 id="page-title">Dashboard</h2>
+        <div id="topbar-actions"></div>
+      </header>
+      <section id="content"></section>
+    </main>
+  </div>
+
+  <!-- ─── MODAL ─────────────────────────────────────────────── -->
+  <div id="modal-overlay" class="hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
