@@ -76,6 +76,9 @@ const CMD_COLORS = {
   stop:     '#6b7280',
 };
 
+const CAT_LABELS = { araba: 'Araba', aksesuar: 'Aksesuar' };
+function catLabel(cat) { return CAT_LABELS[cat] || cat || '-'; }
+
 function cmdBadge(cmd) {
   const color = CMD_COLORS[cmd] || '#6b7280';
   return `<span class="badge" style="background:${color}20;color:${color};border:1px solid ${color}40;font-weight:700">${cmd}</span>`;
@@ -669,7 +672,7 @@ async function renderProducts(page = 1) {
                   </td>
                   <td>${fmtMoney(p.price)}</td>
                   <td><span style="color:${p.stock<=5?'var(--danger)':p.stock<=20?'var(--warning)':'inherit'};font-weight:600">${p.stock}</span></td>
-                  <td>${p.category || '-'}</td>
+                  <td>${catLabel(p.category)}</td>
                   <td>${p.is_active ? badge('Aktif','active') : badge('Pasif','inactive')}</td>
                   <td>
                     <button class="btn btn-outline btn-sm" onclick="openEditProduct('${p.id}')">Düzenle</button>

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../providers/models/models.dart';
 import '../../services/products_service.dart';
 import '../../services/cart_service.dart';
 import '../../services/orders_service.dart';
-import 'control_screen.dart';
 
 // ─── Renk Sabitleri ──────────────────────────────────────────────────────────
 
@@ -23,34 +23,31 @@ const _kTextHint     = Color(0xFF94A3B8);
 const _kBorder       = Color(0xFFE2E8F0);
 const _kSurface      = Color(0xFFF8FAFC);
 
-const _categories = ['Tümü', 'araba', 'parca', 'batarya'];
+const _categories = ['Tümü', 'araba', 'aksesuar'];
 
 enum _HomeView { dashboard, joystick, shop }
 
 Color _catColor(String cat) {
   switch (cat.toLowerCase()) {
-    case 'araba':   return _kPrimary;
-    case 'batarya': return _kGreenMid;
-    case 'parca':   return _kPrimaryMid;
-    default:        return _kWarning;
+    case 'araba':    return _kPrimary;
+    case 'aksesuar': return _kGreenMid;
+    default:         return _kWarning;
   }
 }
 
 Color _catBg(String cat) {
   switch (cat.toLowerCase()) {
-    case 'araba':   return _kPrimaryBg;
-    case 'batarya': return const Color(0xFFD1FAE5);
-    case 'parca':   return const Color(0xFFDBEAFE);
-    default:        return const Color(0xFFFEF3C7);
+    case 'araba':    return _kPrimaryBg;
+    case 'aksesuar': return const Color(0xFFD1FAE5);
+    default:         return const Color(0xFFFEF3C7);
   }
 }
 
 String _catLabel(String cat) {
   switch (cat.toLowerCase()) {
-    case 'araba':   return 'Araba';
-    case 'batarya': return 'Batarya';
-    case 'parca':   return 'Parça';
-    default:        return cat;
+    case 'araba':    return 'Araba';
+    case 'aksesuar': return 'Aksesuar';
+    default:         return cat;
   }
 }
 
@@ -74,9 +71,16 @@ class _HomeScreenState extends State<HomeScreen> {
   String _category    = 'Tümü';
   String? _addingId;
 
+  WebViewController? _webController;
+
   // ── Navigasyon ──────────────────────────────────────────────────────────────
   void _openShop()     { setState(() => _view = _HomeView.shop);     _fetch(); }
-  void _openJoystick() => setState(() => _view = _HomeView.joystick);
+  void _openJoystick() {
+    _webController ??= WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse('http://10.171.99.78'));
+    setState(() => _view = _HomeView.joystick);
+  }
   void _back()         => setState(() => _view = _HomeView.dashboard);
 
   // ── Servis Çağrıları ────────────────────────────────────────────────────────
@@ -259,14 +263,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // JOYSTİCK
+  // JOYSTİCK — ESP32 Web Arayüzü
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildJoystick() {
-    return Column(
-      children: [
-        _topBar('Joystick Kontrolü', Icons.sports_esports_rounded),
-        const Expanded(child: ControlScreen()),
-      ],
+    return SafeArea(
+      child: Column(
+        children: [
+          _topBar('Araç Kontrolü', Icons.sports_esports_rounded),
+          Expanded(
+            child: WebViewWidget(controller: _webController!),
+          ),
+        ],
+      ),
     );
   }
 

@@ -10,7 +10,7 @@ import '../../services/api_client.dart';
 const String _carId = 'car1';
 
 // ESP32 AP modunda bu IP'de çalışır
-const String _esp32BaseUrl = 'http://192.168.4.1';
+const String _esp32BaseUrl = 'http://192.168.123.78';
 
 class ControlScreen extends StatefulWidget {
   const ControlScreen({super.key});
@@ -81,10 +81,10 @@ class _ControlScreenState extends State<ControlScreen> {
     } else if (!ok && _espConnected) {
       setState(() {
         _espConnected = false;
-        _statusMsg = 'ESP32 bağlantısı kesildi (192.168.4.1)';
+        _statusMsg = 'ESP32 bağlantısı kesildi (192.168.123.78)';
       });
     } else if (!ok) {
-      setState(() => _statusMsg = 'ESP32 bekleniyor... (192.168.4.1)');
+      setState(() => _statusMsg = 'ESP32 bekleniyor... (192.168.123.78)');
     }
   }
 
@@ -173,37 +173,32 @@ class _ControlScreenState extends State<ControlScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF9F0),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildStatusBar(),
-            const Spacer(),
-            if (_lastCmd != null) ...[
-              _buildCarStatus(),
-              const SizedBox(height: 16),
-            ],
-            _buildJoystick(),
-            const SizedBox(height: 28),
-            _buildSpeedButtons(),
-            const SizedBox(height: 20),
-            _buildStopButton(),
-            const SizedBox(height: 16),
-            _buildDriftButton(),
-            const SizedBox(height: 12),
-            Text(
-              'Hız: $_speed',
-              style: const TextStyle(
-                color: Color(0xFFB30000),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const Spacer(),
-          ],
+    return Column(
+      children: [
+        _buildStatusBar(),
+        const Spacer(),
+        if (_lastCmd != null) ...[
+          _buildCarStatus(),
+          const SizedBox(height: 16),
+        ],
+        _buildJoystick(),
+        const SizedBox(height: 28),
+        _buildSpeedButtons(),
+        const SizedBox(height: 20),
+        _buildStopButton(),
+        const SizedBox(height: 16),
+        _buildDriftButton(),
+        const SizedBox(height: 12),
+        Text(
+          'Hız: $_speed',
+          style: const TextStyle(
+            color: Color(0xFFB30000),
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
+        const Spacer(),
+      ],
     );
   }
 

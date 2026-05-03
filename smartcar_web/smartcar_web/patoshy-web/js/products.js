@@ -1,8 +1,8 @@
 let allProds = [];
 let activeCat = '';
 
-const badgeMap = {basic:'pb-basic',cam:'pb-cam',pro:'pb-pro',aksesuar:'pb-aksesuar',sensorlu:'pb-cam'};
-const labelMap = {basic:'Basic',cam:'Kameralı',pro:'Pro',aksesuar:'Aksesuar',sensorlu:'Sensörlü'};
+const badgeMap = {araba:'pb-basic',aksesuar:'pb-aksesuar'};
+const labelMap = {araba:'Araba',aksesuar:'Aksesuar'};
 
 function pcard(p, idx=0) {
   const name = typeof p.name==='object'?p.name.tr:p.name;
