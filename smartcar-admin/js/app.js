@@ -76,8 +76,13 @@ const CMD_COLORS = {
   stop:     '#6b7280',
 };
 
-const CAT_LABELS = { araba: 'Araba', aksesuar: 'Aksesuar' };
-function catLabel(cat) { return CAT_LABELS[cat] || cat || '-'; }
+const CAT_LABELS = { Araba: 'Araba', Aksesuar: 'Aksesuar' };
+function normalizeCategory(cat) {
+  const value = (cat || '').trim();
+  const map = { araba: 'Araba', aksesuar: 'Aksesuar' };
+  return map[value.toLowerCase()] || value;
+}
+function catLabel(cat) { return CAT_LABELS[normalizeCategory(cat)] || cat || '-'; }
 
 function cmdBadge(cmd) {
   const color = CMD_COLORS[cmd] || '#6b7280';
@@ -710,7 +715,10 @@ function productFormHTML(p = null) {
         <div class="form-group"><label>Stok</label><input type="number" id="pf-stock" value="${v.stock ?? ''}" min="0" required /></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Kategori</label><input type="text" id="pf-category" value="${v.category || ''}" required /></div>
+        <div class="form-group"><label>Kategori</label><select id="pf-category" required>
+          <option value="Araba" ${normalizeCategory(v.category) === 'Araba' ? 'selected' : ''}>Araba</option>
+          <option value="Aksesuar" ${normalizeCategory(v.category) === 'Aksesuar' ? 'selected' : ''}>Aksesuar</option>
+        </select></div>
         <div class="form-group"><label>Etiketler (virgülle)</label><input type="text" id="pf-tags" value="${(v.tags || []).join(', ')}" /></div>
       </div>
       <div class="form-group">
@@ -843,7 +851,7 @@ function getFixedProductFormData(isEdit = false) {
     },
     price: parseFloat(document.getElementById('pf-price').value),
     stock: parseInt(document.getElementById('pf-stock').value, 10),
-    category: document.getElementById('pf-category').value,
+    category: normalizeCategory(document.getElementById('pf-category').value),
     tags: document.getElementById('pf-tags').value.split(',').map(t => t.trim()).filter(Boolean),
     images: [..._pendingProductImages],
   };

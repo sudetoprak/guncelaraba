@@ -23,7 +23,7 @@ const _kTextHint     = Color(0xFF94A3B8);
 const _kBorder       = Color(0xFFE2E8F0);
 const _kSurface      = Color(0xFFF8FAFC);
 
-const _categories = ['Tümü', 'araba', 'aksesuar'];
+const _categories = ['Tümü', 'Araba', 'Aksesuar'];
 
 enum _HomeView { dashboard, joystick, shop }
 

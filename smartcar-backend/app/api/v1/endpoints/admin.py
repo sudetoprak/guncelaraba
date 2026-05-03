@@ -2,12 +2,23 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from datetime import datetime
 from bson import ObjectId
 from typing import Optional
+import re
 from app.core.database import get_db
 from app.core.security import get_current_admin, hash_password
 from app.schemas.schemas import RegisterRequest, TokenResponse, UserResponse
 from app.services.ws_manager import manager
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+def normalize_category(category: Optional[str]) -> Optional[str]:
+    if category is None:
+        return None
+    value = category.strip()
+    category_map = {
+        "araba": "Araba",
+        "aksesuar": "Aksesuar",
+    }
+    return category_map.get(value.lower(), value)
 
 
 # ─── DASHBOARD ────────────────────────────────────────────────────────────────
@@ -408,7 +419,8 @@ async def list_admin_products(
     db = get_db()
     query: dict = {} if include_inactive else {"is_active": True}
     if category:
-        query["category"] = category
+        normalized = normalize_category(category)
+        query["category"] = {"$regex": f"^{re.escape(normalized)}$", "$options": "i"}
     if search:
         query["$or"] = [
             {"name.tr":        {"$regex": search, "$options": "i"}},

@@ -23,6 +23,12 @@ async function apiReq(endpoint, opts={}) {
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
+function normalizeApiCategory(cat) {
+  const value = (cat || '').trim();
+  const map = {araba:'Araba',aksesuar:'Aksesuar'};
+  return map[value.toLowerCase()] || value;
+}
+
 const api = {
   async login(email, password) {
     if (MOCK_MODE) {
@@ -48,7 +54,7 @@ const api = {
     if (MOCK_MODE) {
       await delay(350);
       let p = [...MOCK_PRODUCTS];
-      if (params.category) p = p.filter(x => x.category === params.category);
+      if (params.category) p = p.filter(x => normalizeApiCategory(x.category) === normalizeApiCategory(params.category));
       if (params.search) { const q=params.search.toLowerCase(); p = p.filter(x => x.name.tr.toLowerCase().includes(q)||x.description.tr.toLowerCase().includes(q)); }
       return p;
     }

@@ -13,7 +13,7 @@ function fixImageUrl(url) {
 
 const MOCK_PRODUCTS = [
   {
-    id:'p001', category:'basic',
+    id:'p001', category:'Araba',
     name:{tr:'Patoshy Basic',en:'Patoshy Basic'},
     description:{
       tr:'WiFi kontrollü 4WD RC araç. ESP-32 tabanlı, mobil uygulama ve web kontrol desteği. L298N motor sürücüsü ve LiPo 7.4V pil dahildir. QR kod ile saniyeler içinde bağlanın.',
@@ -32,7 +32,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p002', category:'cam',
+    id:'p002', category:'Araba',
     name:{tr:'Patoshy Cam',en:'Patoshy Cam'},
     description:{
       tr:'HD kamera modüllü akıllı RC araç. Canlı MJPEG görüntü akışı, QR bağlantı, joystick kontrol ve tüm Basic özellikleri. Kamera açısı servo motor ile ayarlanabilir.',
@@ -51,7 +51,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p003', category:'pro',
+    id:'p003', category:'Araba',
     name:{tr:'Patoshy Pro',en:'Patoshy Pro'},
     description:{
       tr:'Sensör paketi ve yarı-otonom sürüş destekli profesyonel model. HC-SR04 ultrasonik sensörler, IR kızılötesi sensörler, HD kamera ve gelişmiş log sistemi.',
@@ -70,7 +70,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p004', category:'aksesuar',
+    id:'p004', category:'Aksesuar',
     name:{tr:'LiPo Pil 7.4V 3000mAh',en:'LiPo Battery 7.4V 3000mAh'},
     description:{
       tr:'Yüksek kapasiteli yedek LiPo pil. Tüm Patoshy modelleriyle uyumlu. Dengeli şarj devresi ve aşırı deşarj koruması dahildir.',
@@ -88,7 +88,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p005', category:'aksesuar',
+    id:'p005', category:'Aksesuar',
     name:{tr:'HC-SR04 Ultrasonik Sensör',en:'HC-SR04 Ultrasonic Sensor'},
     description:{
       tr:'Engel algılama için ultrasonik mesafe sensörü. Patoshy Pro ile tam uyumlu. 2cm ile 400cm arasında ±3mm hassasiyetle mesafe ölçümü.',
@@ -105,7 +105,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p006', category:'aksesuar',
+    id:'p006', category:'Aksesuar',
     name:{tr:'ESP-32 Geliştirme Kartı',en:'ESP-32 Dev Board'},
     description:{
       tr:'Orijinal ESP-32 DevKit v1 geliştirme kartı. USB programlama, 38 pin çıkış ve dahili WiFi+Bluetooth. Patoshy projeleri için yedek ve geliştirme amaçlıdır.',
@@ -123,7 +123,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p007', category:'aksesuar',
+    id:'p007', category:'Aksesuar',
     name:{tr:'Şarj Cihazı (LiPo Balancer)',en:'LiPo Balance Charger'},
     description:{
       tr:'Dengeli LiPo pil şarj cihazı. Tüm Patoshy pil paketleriyle uyumlu. Aşırı şarj ve termal koruma dahil. AC 100-240V evrensel giriş.',
@@ -140,7 +140,7 @@ const MOCK_PRODUCTS = [
     ]
   },
   {
-    id:'p008', category:'sensorlu',
+    id:'p008', category:'Araba',
     name:{tr:'Patoshy Sensörlü',en:'Patoshy Sensor Edition'},
     description:{
       tr:'Sensör paketi entegre edilmiş özel model. Ultrasonik ve IR sensörler ile donatılmış, tam otonom engel algılama için optimize edilmiş araç.',

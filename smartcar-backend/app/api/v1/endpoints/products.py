@@ -3,6 +3,7 @@ from datetime import datetime
 from bson import ObjectId
 from typing import List, Optional
 import os
+import re
 import uuid
 from app.core.database import get_db
 from app.core.security import get_current_user, get_current_admin
@@ -10,6 +11,16 @@ from app.core.config import settings
 from app.schemas.schemas import ProductCreate, ProductResponse, ProductUpdate
 
 router = APIRouter(prefix="/products", tags=["Products"])
+
+def normalize_category(category: Optional[str]) -> Optional[str]:
+    if category is None:
+        return None
+    value = category.strip()
+    category_map = {
+        "araba": "Araba",
+        "aksesuar": "Aksesuar",
+    }
+    return category_map.get(value.lower(), value)
 
 def serialize_product(p: dict) -> dict:
     p["id"] = str(p["_id"])
@@ -27,7 +38,8 @@ async def list_products(
     db = get_db()
     query = {"is_active": True}
     if category:
-        query["category"] = category
+        normalized = normalize_category(category)
+        query["category"] = {"$regex": f"^{re.escape(normalized)}$", "$options": "i"}
     if search:
         query["$or"] = [
             {f"name.{lang}": {"$regex": search, "$options": "i"}},
@@ -79,6 +91,7 @@ async def create_product(data: ProductCreate, admin=Depends(get_current_admin)):
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
     }
+    product["category"] = normalize_category(product.get("category"))
     result = await db.products.insert_one(product)
     product["_id"] = result.inserted_id
     return serialize_product(product)
@@ -91,6 +104,8 @@ async def update_product(product_id: str, data: ProductUpdate, admin=Depends(get
     except Exception:
         raise HTTPException(400, "Geçersiz ürün ID")
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if "category" in update_data:
+        update_data["category"] = normalize_category(update_data["category"])
     update_data["updated_at"] = datetime.utcnow()
     result = await db.products.find_one_and_update(
         {"_id": oid},

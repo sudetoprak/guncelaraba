@@ -4,12 +4,20 @@ let activeCat = '';
 const badgeMap = {araba:'pb-basic',aksesuar:'pb-aksesuar'};
 const labelMap = {araba:'Araba',aksesuar:'Aksesuar'};
 
+function normalizeProductCategory(cat) {
+  const value = (cat || '').trim();
+  const map = {araba:'Araba',aksesuar:'Aksesuar'};
+  return map[value.toLowerCase()] || value;
+}
+
 function pcard(p, idx=0) {
   const name = typeof p.name==='object'?p.name.tr:p.name;
   const desc = typeof p.description==='object'?p.description.tr:p.description;
   const img = p.images&&p.images[0] ? fixImageUrl(p.images[0]) : 'img/basic.png';
-  const bc = badgeMap[p.category]||'pb-basic';
-  const bl = labelMap[p.category]||p.category;
+  const category = normalizeProductCategory(p.category);
+  const categoryKey = category.toLowerCase();
+  const bc = badgeMap[categoryKey]||'pb-basic';
+  const bl = labelMap[categoryKey]||category;
   const stock = p.stock>0 ? `<span class="pbadge-stock">● Stokta</span>` : `<span class="pbadge-stock out">● Tükendi</span>`;
 
   return `<div class="pcard" style="animation-delay:${idx*0.06}s" onclick="showDetail('${p.id}')">
@@ -57,7 +65,7 @@ function renderAllProducts() {
   const emp = document.getElementById('productsEmpty');
   if (!el) return;
   const sort = document.getElementById('sortSelect')?.value||'';
-  let prods = allProds.filter(p => !activeCat||p.category===activeCat);
+  let prods = allProds.filter(p => !activeCat||normalizeProductCategory(p.category)===activeCat);
   if (sort==='price-asc') prods.sort((a,b)=>a.price-b.price);
   else if (sort==='price-desc') prods.sort((a,b)=>b.price-a.price);
   else if (sort==='name') prods.sort((a,b)=>(typeof a.name==='object'?a.name.tr:a.name).localeCompare(typeof b.name==='object'?b.name.tr:b.name,'tr'));
@@ -89,8 +97,10 @@ async function showDetail(id) {
     const desc = typeof p.description==='object'?p.description.tr:p.description;
     const images = (p.images&&p.images.length) ? p.images.map(fixImageUrl) : ['img/basic.png'];
     const img = images[0];
-    const bc = badgeMap[p.category]||'pb-basic';
-    const bl = labelMap[p.category]||p.category;
+    const category = normalizeProductCategory(p.category);
+    const categoryKey = category.toLowerCase();
+    const bc = badgeMap[categoryKey]||'pb-basic';
+    const bl = labelMap[categoryKey]||category;
     const specs = p.specs?.map(([k,v])=>`<div class="srow"><span class="sk">${k}</span><span class="sv">${v}</span></div>`).join('')||'';
     const stockBadge = p.stock>0
       ? `<span style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);padding:0.3rem 0.85rem;border-radius:20px;font-size:0.72rem;font-weight:700">● Stokta (${p.stock} adet)</span>`
