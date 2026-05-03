@@ -10,7 +10,7 @@ import '../../services/api_client.dart';
 const String _carId = 'car1';
 
 // ESP32 AP modunda bu IP'de çalışır
-const String _esp32BaseUrl = 'http://192.168.123.78';
+const String _esp32BaseUrl = 'http://10.245.7.154';
 
 class ControlScreen extends StatefulWidget {
   const ControlScreen({super.key});

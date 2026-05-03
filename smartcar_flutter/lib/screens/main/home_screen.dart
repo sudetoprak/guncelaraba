@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openJoystick() {
     _webController ??= WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('http://10.171.99.78'));
+      ..loadRequest(Uri.parse('http://10.245.7.154'));
     setState(() => _view = _HomeView.joystick);
   }
   void _back()         => setState(() => _view = _HomeView.dashboard);
