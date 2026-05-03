@@ -13,6 +13,23 @@ const _kTextHint    = Color(0xFF94A3B8);
 const _kBorder      = Color(0xFFE2E8F0);
 const _kSurface     = Color(0xFFF8FAFC);
 
+const _turkishCities = [
+  'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara',
+  'Antalya', 'Artvin', 'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl',
+  'Bitlis', 'Bolu', 'Burdur', 'Bursa', 'Çanakkale', 'Çankırı',
+  'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+  'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane',
+  'Hakkari', 'Hatay', 'Isparta', 'Mersin', 'İstanbul', 'İzmir',
+  'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir', 'Kocaeli',
+  'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin',
+  'Muğla', 'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya',
+  'Samsun', 'Siirt', 'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon',
+  'Tunceli', 'Şanlıurfa', 'Uşak', 'Van', 'Yozgat', 'Zonguldak',
+  'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak',
+  'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis',
+  'Osmaniye', 'Düzce',
+];
+
 class CheckoutScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onSuccess;
@@ -25,11 +42,11 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _streetCtrl  = TextEditingController();
-  final _cityCtrl    = TextEditingController();
   final _countryCtrl = TextEditingController(text: 'Türkiye');
   final _zipCtrl     = TextEditingController();
 
   String _paymentMethod = 'cash_on_delivery';
+  String? _selectedCity;
   bool   _loading       = false;
   bool   _orderSuccess  = false;
 
@@ -57,7 +74,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _placeOrder() async {
     if (_streetCtrl.text.trim().isEmpty ||
-        _cityCtrl.text.trim().isEmpty   ||
+        _selectedCity == null           ||
         _zipCtrl.text.trim().isEmpty) {
       _showError('Adres bilgilerini eksiksiz doldurun.');
       return;
@@ -67,7 +84,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       await _orderService.create(
         shippingAddress: Address(
           street:  _streetCtrl.text.trim(),
-          city:    _cityCtrl.text.trim(),
+          city:    _selectedCity!,
           country: _countryCtrl.text.trim(),
           zip:     _zipCtrl.text.trim(),
         ),
@@ -155,7 +172,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 10),
                   _field('Sokak / Mahalle *', _streetCtrl,
                       'Atatürk Cad. No:5 D:3'),
-                  _field('Şehir *', _cityCtrl, 'İstanbul'),
+                  _cityDropdown(),
                   _field('Ülke', _countryCtrl, 'Türkiye'),
                   _field('Posta Kodu *', _zipCtrl, '34000',
                       keyboard: TextInputType.number),
@@ -494,6 +511,53 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ],
       );
 
+  Widget _cityDropdown() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 10, bottom: 5),
+            child: Text('Şehir *',
+                style: TextStyle(
+                    color: _kTextSub, fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ),
+          DropdownButtonFormField<String>(
+            value: _selectedCity,
+            isExpanded: true,
+            menuMaxHeight: 320,
+            hint: const Text('Şehir seçin',
+                style: TextStyle(color: _kTextHint, fontSize: 13)),
+            items: _turkishCities
+                .map((city) => DropdownMenuItem(
+                      value: city,
+                      child: Text(city,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: _kText, fontSize: 14)),
+                    ))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedCity = value),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: _kSurface,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: _kBorder)),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: _kBorder)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide:
+                      const BorderSide(color: _kPrimary, width: 1.5)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              isDense: true,
+            ),
+          ),
+        ],
+      );
+
   Widget _payOption(
           String id, String label, IconData icon, String subtitle) =>
       GestureDetector(
@@ -553,7 +617,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void dispose() {
     _streetCtrl.dispose();
-    _cityCtrl.dispose();
     _countryCtrl.dispose();
     _zipCtrl.dispose();
     super.dispose();

@@ -8,46 +8,138 @@ import '../../services/orders_service.dart';
 
 // ─── Renk Sabitleri ──────────────────────────────────────────────────────────
 
-const _kPrimary      = Color(0xFF1E3A8A);
-const _kPrimaryMid   = Color(0xFF2563EB);
-const _kPrimaryBg    = Color(0xFFEFF6FF);
-const _kPrimaryBorder= Color(0xFFBFDBFE);
-const _kGreen        = Color(0xFF065F46);
-const _kGreenMid     = Color(0xFF10B981);
-const _kSuccess      = Color(0xFF10B981);
-const _kWarning      = Color(0xFFF59E0B);
-const _kDanger       = Color(0xFFEF4444);
-const _kText         = Color(0xFF0F172A);
-const _kTextSub      = Color(0xFF64748B);
-const _kTextHint     = Color(0xFF94A3B8);
-const _kBorder       = Color(0xFFE2E8F0);
-const _kSurface      = Color(0xFFF8FAFC);
+const _kPrimary = Color(0xFF1E3A8A);
+const _kPrimaryMid = Color(0xFF2563EB);
+const _kPrimaryBg = Color(0xFFEFF6FF);
+const _kPrimaryBorder = Color(0xFFBFDBFE);
+const _kGreen = Color(0xFF065F46);
+const _kGreenMid = Color(0xFF10B981);
+const _kSuccess = Color(0xFF10B981);
+const _kWarning = Color(0xFFF59E0B);
+const _kDanger = Color(0xFFEF4444);
+const _kText = Color(0xFF0F172A);
+const _kTextSub = Color(0xFF64748B);
+const _kTextHint = Color(0xFF94A3B8);
+const _kBorder = Color(0xFFE2E8F0);
+const _kSurface = Color(0xFFF8FAFC);
 
 const _categories = ['Tümü', 'Araba', 'Aksesuar'];
+const _turkishCities = [
+  'Adana',
+  'Adıyaman',
+  'Afyonkarahisar',
+  'Ağrı',
+  'Amasya',
+  'Ankara',
+  'Antalya',
+  'Artvin',
+  'Aydın',
+  'Balıkesir',
+  'Bilecik',
+  'Bingöl',
+  'Bitlis',
+  'Bolu',
+  'Burdur',
+  'Bursa',
+  'Çanakkale',
+  'Çankırı',
+  'Çorum',
+  'Denizli',
+  'Diyarbakır',
+  'Edirne',
+  'Elazığ',
+  'Erzincan',
+  'Erzurum',
+  'Eskişehir',
+  'Gaziantep',
+  'Giresun',
+  'Gümüşhane',
+  'Hakkari',
+  'Hatay',
+  'Isparta',
+  'Mersin',
+  'İstanbul',
+  'İzmir',
+  'Kars',
+  'Kastamonu',
+  'Kayseri',
+  'Kırklareli',
+  'Kırşehir',
+  'Kocaeli',
+  'Konya',
+  'Kütahya',
+  'Malatya',
+  'Manisa',
+  'Kahramanmaraş',
+  'Mardin',
+  'Muğla',
+  'Muş',
+  'Nevşehir',
+  'Niğde',
+  'Ordu',
+  'Rize',
+  'Sakarya',
+  'Samsun',
+  'Siirt',
+  'Sinop',
+  'Sivas',
+  'Tekirdağ',
+  'Tokat',
+  'Trabzon',
+  'Tunceli',
+  'Şanlıurfa',
+  'Uşak',
+  'Van',
+  'Yozgat',
+  'Zonguldak',
+  'Aksaray',
+  'Bayburt',
+  'Karaman',
+  'Kırıkkale',
+  'Batman',
+  'Şırnak',
+  'Bartın',
+  'Ardahan',
+  'Iğdır',
+  'Yalova',
+  'Karabük',
+  'Kilis',
+  'Osmaniye',
+  'Düzce',
+];
 
 enum _HomeView { dashboard, joystick, shop }
 
 Color _catColor(String cat) {
   switch (cat.toLowerCase()) {
-    case 'araba':    return _kPrimary;
-    case 'aksesuar': return _kGreenMid;
-    default:         return _kWarning;
+    case 'araba':
+      return _kPrimary;
+    case 'aksesuar':
+      return _kGreenMid;
+    default:
+      return _kWarning;
   }
 }
 
 Color _catBg(String cat) {
   switch (cat.toLowerCase()) {
-    case 'araba':    return _kPrimaryBg;
-    case 'aksesuar': return const Color(0xFFD1FAE5);
-    default:         return const Color(0xFFFEF3C7);
+    case 'araba':
+      return _kPrimaryBg;
+    case 'aksesuar':
+      return const Color(0xFFD1FAE5);
+    default:
+      return const Color(0xFFFEF3C7);
   }
 }
 
 String _catLabel(String cat) {
   switch (cat.toLowerCase()) {
-    case 'araba':    return 'Araba';
-    case 'aksesuar': return 'Aksesuar';
-    default:         return cat;
+    case 'araba':
+      return 'Araba';
+    case 'aksesuar':
+      return 'Aksesuar';
+    default:
+      return cat;
   }
 }
 
@@ -62,26 +154,57 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _productsService = ProductsService();
-  final _cartService     = CartService();
+  final _cartService = CartService();
+  final _minPriceCtrl = TextEditingController();
+  final _maxPriceCtrl = TextEditingController();
 
-  _HomeView _view     = _HomeView.dashboard;
+  _HomeView _view = _HomeView.dashboard;
   List<Product> _products = [];
-  bool   _loading     = false;
-  String _search      = '';
-  String _category    = 'Tümü';
+  bool _loading = false;
+  String _search = '';
+  String _category = 'Tümü';
   String? _addingId;
+  WebViewController? _espWebController;
 
-  WebViewController? _webController;
+  List<Product> get _filteredProducts {
+    final minPrice = double.tryParse(
+      _minPriceCtrl.text.trim().replaceAll(',', '.'),
+    );
+    final maxPrice = double.tryParse(
+      _maxPriceCtrl.text.trim().replaceAll(',', '.'),
+    );
+    return _products.where((product) {
+      if (minPrice != null && product.price < minPrice) return false;
+      if (maxPrice != null && product.price > maxPrice) return false;
+      return true;
+    }).toList();
+  }
+
+  bool get _hasPriceFilter =>
+      _minPriceCtrl.text.trim().isNotEmpty ||
+      _maxPriceCtrl.text.trim().isNotEmpty;
+
+  void _clearPriceFilter() {
+    _minPriceCtrl.clear();
+    _maxPriceCtrl.clear();
+    setState(() {});
+  }
 
   // ── Navigasyon ──────────────────────────────────────────────────────────────
-  void _openShop()     { setState(() => _view = _HomeView.shop);     _fetch(); }
+  void _openShop() {
+    setState(() => _view = _HomeView.shop);
+    _fetch();
+  }
+
   void _openJoystick() {
-    _webController ??= WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('http://10.245.7.154'));
+    _espWebController =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..loadRequest(Uri.parse('http://192.168.4.1'));
     setState(() => _view = _HomeView.joystick);
   }
-  void _back()         => setState(() => _view = _HomeView.dashboard);
+
+  void _back() => setState(() => _view = _HomeView.dashboard);
 
   // ── Servis Çağrıları ────────────────────────────────────────────────────────
   Future<void> _fetch() async {
@@ -90,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final data = await _productsService.list(
         category: _category == 'Tümü' ? null : _category,
-        search:   _search.isEmpty     ? null : _search,
+        search: _search.isEmpty ? null : _search,
       );
       if (mounted) setState(() => _products = data);
     } catch (_) {
@@ -113,12 +236,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _snack(String msg, {bool error = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
-      backgroundColor: error ? _kDanger : _kSuccess,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
+        backgroundColor: error ? _kDanger : _kSuccess,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _showDetail(Product product) {
@@ -126,19 +251,20 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _ProductDetailSheet(
-        product: product,
-        onAddToCart: (qty) {
-          Navigator.pop(context);
-          _addToCart(product.id, qty: qty);
-        },
-        onBuyNow: (qty) {
-          Navigator.pop(context);
-          _addToCart(product.id, qty: qty).then((_) {
-            if (mounted) _showCheckout();
-          });
-        },
-      ),
+      builder:
+          (_) => _ProductDetailSheet(
+            product: product,
+            onAddToCart: (qty) {
+              Navigator.pop(context);
+              _addToCart(product.id, qty: qty);
+            },
+            onBuyNow: (qty) {
+              Navigator.pop(context);
+              _addToCart(product.id, qty: qty).then((_) {
+                if (mounted) _showCheckout();
+              });
+            },
+          ),
     );
   }
 
@@ -147,12 +273,13 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _CheckoutSheet(
-        onSuccess: () {
-          Navigator.pop(context);
-          _snack('Siparişiniz alındı!');
-        },
-      ),
+      builder:
+          (_) => _CheckoutSheet(
+            onSuccess: () {
+              Navigator.pop(context);
+              _snack('Siparişiniz alındı!');
+            },
+          ),
     );
   }
 
@@ -160,9 +287,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     switch (_view) {
-      case _HomeView.dashboard: return _buildDashboard();
-      case _HomeView.joystick:  return _buildJoystick();
-      case _HomeView.shop:      return _buildShop();
+      case _HomeView.dashboard:
+        return _buildDashboard();
+      case _HomeView.joystick:
+        return _buildJoystick();
+      case _HomeView.shop:
+        return _buildShop();
     }
   }
 
@@ -188,36 +318,67 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     Container(
-                      width: 38, height: 38,
+                      width: 38,
+                      height: 38,
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.directions_car, color: Colors.white, size: 22),
+                      child: const Icon(
+                        Icons.directions_car,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 10),
-                    const Text('SmartCar',
-                        style: TextStyle(
-                            color: Colors.white, fontSize: 22,
-                            fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                    const Text(
+                      'SmartCar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text('v1.0',
-                          style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                      child: const Text(
+                        'v1.0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Text('Hoş geldiniz 👋',
-                    style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
+                const Text(
+                  'Hoş geldiniz 👋',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                const Text('Ne yapmak istersiniz?',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                const Text(
+                  'Ne yapmak istersiniz?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ],
             ),
           ),
@@ -235,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Joystick Kontrolü',
                       subtitle: 'Aracini uzaktan yönet',
                       gradientStart: const Color(0xFF1E3A8A),
-                      gradientEnd:   const Color(0xFF2563EB),
+                      gradientEnd: const Color(0xFF2563EB),
                       badge: 'CANLI',
                       onTap: _openJoystick,
                     ),
@@ -247,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Mağaza',
                       subtitle: 'Araç, parça ve batarya al',
                       gradientStart: const Color(0xFF065F46),
-                      gradientEnd:   const Color(0xFF10B981),
+                      gradientEnd: const Color(0xFF10B981),
                       badge: 'YENİ ÜRÜNLER',
                       onTap: _openShop,
                     ),
@@ -271,7 +432,12 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _topBar('Araç Kontrolü', Icons.sports_esports_rounded),
           Expanded(
-            child: WebViewWidget(controller: _webController!),
+            child:
+                _espWebController == null
+                    ? const Center(
+                      child: CircularProgressIndicator(color: _kPrimary),
+                    )
+                    : WebViewWidget(controller: _espWebController!),
           ),
         ],
       ),
@@ -282,6 +448,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // MAĞAZA
   // ══════════════════════════════════════════════════════════════════════════
   Widget _buildShop() {
+    final filteredProducts = _filteredProducts;
+
     return Column(
       children: [
         _topBar('Mağaza', Icons.storefront_rounded),
@@ -290,7 +458,10 @@ class _HomeScreenState extends State<HomeScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
           child: TextField(
-            onChanged: (v) { _search = v; _fetch(); },
+            onChanged: (v) {
+              _search = v;
+              _fetch();
+            },
             style: const TextStyle(color: _kText, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Ürün, kategori veya marka ara...',
@@ -300,15 +471,21 @@ class _HomeScreenState extends State<HomeScreen> {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: _kBorder)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _kBorder),
+              ),
               enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: _kBorder)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _kBorder),
+              ),
               focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: _kPrimary, width: 1.5)),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 14,
+              ),
               isDense: true,
             ),
           ),
@@ -325,27 +502,45 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: _categories.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
-              final cat    = _categories[i];
+              final cat = _categories[i];
               final active = _category == cat;
-              final color  = cat == 'Tümü' ? _kPrimary : _catColor(cat);
+              final color = cat == 'Tümü' ? _kPrimary : _catColor(cat);
               return GestureDetector(
-                onTap: () { setState(() => _category = cat); _fetch(); },
+                onTap: () {
+                  setState(() => _category = cat);
+                  _fetch();
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: active ? color : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: active ? color : _kBorder, width: 1.5),
-                    boxShadow: active
-                        ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))]
-                        : [],
+                    border: Border.all(
+                      color: active ? color : _kBorder,
+                      width: 1.5,
+                    ),
+                    boxShadow:
+                        active
+                            ? [
+                              BoxShadow(
+                                color: color.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                            : [],
                   ),
                   child: Text(
                     cat == 'Tümü' ? 'Tümü' : _catLabel(cat),
                     style: TextStyle(
-                        color: active ? Colors.white : _kTextSub,
-                        fontSize: 12, fontWeight: FontWeight.w700),
+                      color: active ? Colors.white : _kTextSub,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               );
@@ -354,13 +549,50 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         // Ürün sayısı
-        if (!_loading && _products.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: _priceField(controller: _minPriceCtrl, hint: 'Min ₺'),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _priceField(controller: _maxPriceCtrl, hint: 'Max ₺'),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 42,
+                height: 42,
+                child: OutlinedButton(
+                  onPressed: _hasPriceFilter ? _clearPriceFilter : null,
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    side: const BorderSide(color: _kBorder),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: _hasPriceFilter ? _kDanger : _kTextHint,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        if (!_loading && filteredProducts.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(left: 16, top: 8, bottom: 2),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text('${_products.length} ürün listelendi',
-                  style: const TextStyle(color: _kTextHint, fontSize: 12)),
+              child: Text(
+                '${filteredProducts.length} ürün listelendi',
+                style: const TextStyle(color: _kTextHint, fontSize: 12),
+              ),
             ),
           ),
 
@@ -368,32 +600,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Ürünler
         Expanded(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator(color: _kPrimary))
-              : _products.isEmpty
+          child:
+              _loading
+                  ? const Center(
+                    child: CircularProgressIndicator(color: _kPrimary),
+                  )
+                  : filteredProducts.isEmpty
                   ? _emptyState()
                   : RefreshIndicator(
-                      color: _kPrimary,
-                      onRefresh: _fetch,
-                      child: GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 0.70,
-                        ),
-                        itemCount: _products.length,
-                        itemBuilder: (_, i) => _ProductGridCard(
-                          product:    _products[i],
-                          isAdding:   _addingId == _products[i].id,
-                          onDetail:   () => _showDetail(_products[i]),
-                          onAddToCart:() => _addToCart(_products[i].id),
-                          onBuyNow:   () => _addToCart(_products[i].id)
-                              .then((_) => mounted ? _showCheckout() : null),
-                        ),
-                      ),
+                    color: _kPrimary,
+                    onRefresh: _fetch,
+                    child: GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.64,
+                          ),
+                      itemCount: filteredProducts.length,
+                      itemBuilder:
+                          (_, i) => _ProductGridCard(
+                            product: filteredProducts[i],
+                            isAdding: _addingId == filteredProducts[i].id,
+                            onDetail: () => _showDetail(filteredProducts[i]),
+                            onAddToCart:
+                                () => _addToCart(filteredProducts[i].id),
+                            onBuyNow:
+                                () => _addToCart(
+                                  filteredProducts[i].id,
+                                ).then((_) => mounted ? _showCheckout() : null),
+                          ),
                     ),
+                  ),
         ),
       ],
     );
@@ -401,44 +641,107 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Yardımcı Widget'lar ─────────────────────────────────────────────────────
   Widget _emptyState() => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80, height: 80,
-              decoration: const BoxDecoration(color: _kPrimaryBg, shape: BoxShape.circle),
-              child: const Icon(Icons.search_off, size: 38, color: _kPrimary),
-            ),
-            const SizedBox(height: 16),
-            const Text('Ürün bulunamadı',
-                style: TextStyle(color: _kText, fontSize: 16, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            const Text('Farklı bir arama yapmayı deneyin',
-                style: TextStyle(color: _kTextHint, fontSize: 13)),
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: const BoxDecoration(
+            color: _kPrimaryBg,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.search_off, size: 38, color: _kPrimary),
         ),
-      );
+        const SizedBox(height: 16),
+        const Text(
+          'Ürün bulunamadı',
+          style: TextStyle(
+            color: _kText,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Farklı bir arama yapmayı deneyin',
+          style: TextStyle(color: _kTextHint, fontSize: 13),
+        ),
+      ],
+    ),
+  );
+
+  Widget _priceField({
+    required TextEditingController controller,
+    required String hint,
+  }) => TextField(
+    controller: controller,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    onChanged: (_) => setState(() {}),
+    style: const TextStyle(color: _kText, fontSize: 13),
+    decoration: InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: _kTextHint, fontSize: 12),
+      prefixIcon: const Icon(
+        Icons.payments_outlined,
+        color: _kTextHint,
+        size: 18,
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _kBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _kBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 11, horizontal: 10),
+      isDense: true,
+    ),
+  );
 
   Widget _topBar(String title, IconData icon) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(bottom: BorderSide(color: _kBorder)),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      border: Border(bottom: BorderSide(color: _kBorder)),
+    ),
+    child: Row(
+      children: [
+        IconButton(
+          onPressed: _back,
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: _kPrimary,
+            size: 18,
+          ),
         ),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: _back,
-              icon: const Icon(Icons.arrow_back_ios_new, color: _kPrimary, size: 18),
-            ),
-            Icon(icon, color: _kPrimary, size: 20),
-            const SizedBox(width: 8),
-            Text(title,
-                style: const TextStyle(
-                    color: _kText, fontSize: 16, fontWeight: FontWeight.w800)),
-          ],
+        Icon(icon, color: _kPrimary, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            color: _kText,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-      );
+      ],
+    ),
+  );
+
+  @override
+  void dispose() {
+    _minPriceCtrl.dispose();
+    _maxPriceCtrl.dispose();
+    super.dispose();
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -488,9 +791,11 @@ class _DashCard extends StatelessWidget {
           children: [
             // Dekoratif daireler
             Positioned(
-              right: -20, top: -20,
+              right: -20,
+              top: -20,
               child: Container(
-                width: 120, height: 120,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.06),
@@ -498,9 +803,11 @@ class _DashCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              right: 20, bottom: -28,
+              right: 20,
+              bottom: -28,
               child: Container(
-                width: 90, height: 90,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withOpacity(0.06),
@@ -519,7 +826,8 @@ class _DashCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        width: 52, height: 52,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.18),
                           borderRadius: BorderRadius.circular(14),
@@ -528,15 +836,23 @@ class _DashCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text(badge,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 10,
-                                fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                        child: Text(
+                          badge,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -545,17 +861,29 @@ class _DashCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 20,
-                              fontWeight: FontWeight.w900, letterSpacing: -0.3)),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(subtitle,
-                          style: TextStyle(
-                              color: Colors.white.withOpacity(0.75), fontSize: 13)),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 14),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -563,12 +891,20 @@ class _DashCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('Başla',
-                                style: TextStyle(
-                                    color: gradientStart, fontSize: 13,
-                                    fontWeight: FontWeight.w800)),
+                            Text(
+                              'Başla',
+                              style: TextStyle(
+                                color: gradientStart,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                             const SizedBox(width: 4),
-                            Icon(Icons.arrow_forward, color: gradientStart, size: 14),
+                            Icon(
+                              Icons.arrow_forward,
+                              color: gradientStart,
+                              size: 14,
+                            ),
                           ],
                         ),
                       ),
@@ -605,7 +941,7 @@ class _ProductGridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _catColor(product.category);
-    final bg    = _catBg(product.category);
+    final bg = _catBg(product.category);
 
     return GestureDetector(
       onTap: onDetail,
@@ -617,7 +953,8 @@ class _ProductGridCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
-              blurRadius: 12, offset: const Offset(0, 2),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -632,30 +969,47 @@ class _ProductGridCard extends StatelessWidget {
                   height: 120,
                   width: double.infinity,
                   color: bg,
-                  child: product.images.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: product.images[0],
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Center(
-                              child: CircularProgressIndicator(color: color, strokeWidth: 2)),
-                          errorWidget: (_, __, ___) => Center(
-                              child: Icon(Icons.directions_car,
-                                  color: color.withOpacity(0.5), size: 40)),
-                        )
-                      : Center(
-                          child: Icon(Icons.directions_car,
-                              color: color.withOpacity(0.5), size: 40)),
+                  child:
+                      product.images.isNotEmpty
+                          ? CachedNetworkImage(
+                            imageUrl: product.images[0],
+                            fit: BoxFit.cover,
+                            placeholder:
+                                (_, __) => Center(
+                                  child: CircularProgressIndicator(
+                                    color: color,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                            errorWidget:
+                                (_, __, ___) => Center(
+                                  child: Icon(
+                                    Icons.directions_car,
+                                    color: color.withOpacity(0.5),
+                                    size: 40,
+                                  ),
+                                ),
+                          )
+                          : Center(
+                            child: Icon(
+                              Icons.directions_car,
+                              color: color.withOpacity(0.5),
+                              size: 40,
+                            ),
+                          ),
                 ),
 
                 // Stok rozeti
                 if (product.stock == 0)
                   Positioned(
-                    top: 8, left: 8,
+                    top: 8,
+                    left: 8,
                     child: _badge('Tükendi', _kDanger),
                   )
                 else if (product.stock <= 5)
                   Positioned(
-                    top: 8, left: 8,
+                    top: 8,
+                    left: 8,
                     child: _badge('Son ${product.stock}', _kWarning),
                   ),
               ],
@@ -670,30 +1024,74 @@ class _ProductGridCard extends StatelessWidget {
                   children: [
                     // Kategori etiketi
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: bg,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(_catLabel(product.category),
-                          style: TextStyle(
-                              color: color, fontSize: 9, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        _catLabel(product.category),
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 5),
 
-                    Text(product.name.tr,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: _kText, fontSize: 12,
-                            fontWeight: FontWeight.w700, height: 1.3)),
+                    Text(
+                      product.name.tr,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _kText,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.3,
+                      ),
+                    ),
 
                     const Spacer(),
 
-                    Text('₺${product.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                            color: _kPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
+                    Text(
+                      '₺${product.price.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        color: _kPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+
+                    if (product.stock > 0 && product.stock <= 5) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.local_fire_department_rounded,
+                            color: _kWarning,
+                            size: 13,
+                          ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              'Son ${product.stock} ürün kaldı',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _kWarning,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
 
                     const SizedBox(height: 8),
 
@@ -701,35 +1099,49 @@ class _ProductGridCard extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: GestureDetector(
-                        onTap: product.stock == 0 ? null : (isAdding ? null : onAddToCart),
+                        onTap:
+                            product.stock == 0
+                                ? null
+                                : (isAdding ? null : onAddToCart),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: product.stock == 0 ? _kBorder : color,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: isAdding
-                              ? const Center(
-                                  child: SizedBox(
-                                    width: 14, height: 14,
-                                    child: CircularProgressIndicator(
-                                        color: Colors.white, strokeWidth: 2),
-                                  ),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.add_shopping_cart_rounded,
-                                        color: Colors.white, size: 12),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      product.stock == 0 ? 'Tükendi' : 'Sepete Ekle',
-                                      style: const TextStyle(
-                                          color: Colors.white, fontSize: 11,
-                                          fontWeight: FontWeight.w700),
+                          child:
+                              isAdding
+                                  ? const Center(
+                                    child: SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
                                     ),
-                                  ],
-                                ),
+                                  )
+                                  : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.add_shopping_cart_rounded,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        product.stock == 0
+                                            ? 'Tükendi'
+                                            : 'Sepete Ekle',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                         ),
                       ),
                     ),
@@ -744,14 +1156,20 @@ class _ProductGridCard extends StatelessWidget {
   }
 
   Widget _badge(String text, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-        decoration: BoxDecoration(
-          color: color, borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(text,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 9,
+        fontWeight: FontWeight.w800,
+      ),
+    ),
+  );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -778,285 +1196,389 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final p      = widget.product;
-    final color  = _catColor(p.category);
-    final bg     = _catBg(p.category);
+    final p = widget.product;
+    final color = _catColor(p.category);
+    final bg = _catBg(p.category);
     final screenW = MediaQuery.of(context).size.width;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
       maxChildSize: 0.95,
       minChildSize: 0.5,
-      builder: (_, ctrl) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 6),
-              width: 40, height: 4,
-              decoration: BoxDecoration(
-                  color: _kBorder, borderRadius: BorderRadius.circular(2)),
+      builder:
+          (_, ctrl) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
+            child: Column(
+              children: [
+                // Handle
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 6),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: _kBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                controller: ctrl,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Fotoğraf
-                    Container(
-                      height: 260, color: bg,
-                      child: p.images.isNotEmpty
-                          ? PageView.builder(
-                              itemCount: p.images.length,
-                              onPageChanged: (i) => setState(() => _imgIndex = i),
-                              itemBuilder: (_, i) => CachedNetworkImage(
-                                imageUrl: p.images[i],
-                                fit: BoxFit.cover,
-                                width: screenW,
-                                placeholder: (_, __) => const Center(
-                                    child: CircularProgressIndicator(color: _kPrimary)),
-                                errorWidget: (_, __, ___) => Center(
-                                    child: Icon(Icons.directions_car,
-                                        color: color.withOpacity(0.4), size: 64)),
-                              ),
-                            )
-                          : Center(
-                              child: Icon(Icons.directions_car,
-                                  color: color.withOpacity(0.4), size: 64)),
-                    ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: ctrl,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Fotoğraf
+                        Container(
+                          height: 260,
+                          color: bg,
+                          child:
+                              p.images.isNotEmpty
+                                  ? PageView.builder(
+                                    itemCount: p.images.length,
+                                    onPageChanged:
+                                        (i) => setState(() => _imgIndex = i),
+                                    itemBuilder:
+                                        (_, i) => CachedNetworkImage(
+                                          imageUrl: p.images[i],
+                                          fit: BoxFit.cover,
+                                          width: screenW,
+                                          placeholder:
+                                              (_, __) => const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: _kPrimary,
+                                                    ),
+                                              ),
+                                          errorWidget:
+                                              (_, __, ___) => Center(
+                                                child: Icon(
+                                                  Icons.directions_car,
+                                                  color: color.withOpacity(0.4),
+                                                  size: 64,
+                                                ),
+                                              ),
+                                        ),
+                                  )
+                                  : Center(
+                                    child: Icon(
+                                      Icons.directions_car,
+                                      color: color.withOpacity(0.4),
+                                      size: 64,
+                                    ),
+                                  ),
+                        ),
 
-                    // Nokta indikatörü
-                    if (p.images.length > 1)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            p.images.length,
-                            (i) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
-                              width: i == _imgIndex ? 20 : 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: i == _imgIndex ? _kPrimary : _kBorder,
-                                borderRadius: BorderRadius.circular(3),
+                        // Nokta indikatörü
+                        if (p.images.length > 1)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                p.images.length,
+                                (i) => AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  width: i == _imgIndex ? 20 : 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        i == _imgIndex ? _kPrimary : _kBorder,
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
 
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Kategori + stok
-                          Row(
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                    color: bg, borderRadius: BorderRadius.circular(8)),
-                                child: Text(_catLabel(p.category),
-                                    style: TextStyle(
-                                        color: color, fontSize: 11,
-                                        fontWeight: FontWeight.w700)),
+                              // Kategori + stok
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: bg,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      _catLabel(p.category),
+                                      style: TextStyle(
+                                        color: color,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          p.stock > 0
+                                              ? const Color(0xFFD1FAE5)
+                                              : const Color(0xFFFEE2E2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      p.stock > 0
+                                          ? 'Stok: ${p.stock} adet'
+                                          : 'Stok Yok',
+                                      style: TextStyle(
+                                        color:
+                                            p.stock > 0 ? _kSuccess : _kDanger,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Container(
+
+                              const SizedBox(height: 14),
+
+                              Text(
+                                p.name.tr,
+                                style: const TextStyle(
+                                  color: _kText,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.2,
+                                ),
+                              ),
+
+                              if (p.name.en.trim().isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  p.name.en,
+                                  style: const TextStyle(
+                                    color: _kTextHint,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+
+                              const SizedBox(height: 16),
+
+                              // Fiyat
+                              Text(
+                                '₺${p.price.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  color: _kPrimary,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+                              const Divider(color: _kBorder, thickness: 1),
+                              const SizedBox(height: 16),
+
+                              // Açıklama
+                              const Text(
+                                'AÇIKLAMA',
+                                style: TextStyle(
+                                  color: _kTextHint,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                p.description.tr.trim().isNotEmpty
+                                    ? p.description.tr
+                                    : 'Bu ürün için henüz açıklama eklenmemiş.',
+                                style: const TextStyle(
+                                  color: _kTextSub,
+                                  fontSize: 14,
+                                  height: 1.75,
+                                ),
+                              ),
+
+                              // Etiketler
+                              if (p.tags.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  children:
+                                      p.tags
+                                          .map(
+                                            (t) => Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: _kPrimaryBg,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: _kPrimaryBorder,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                '#$t',
+                                                style: const TextStyle(
+                                                  color: _kPrimary,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Alt buton çubuğu
+                if (p.stock > 0)
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(top: BorderSide(color: _kBorder)),
+                    ),
+                    child: Row(
+                      children: [
+                        // Miktar seçici
+                        Container(
+                          decoration: BoxDecoration(
+                            color: _kSurface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: _kBorder),
+                          ),
+                          child: Row(
+                            children: [
+                              _qtyBtn(
+                                '−',
+                                () => setState(
+                                  () => _qty = (_qty - 1).clamp(1, p.stock),
+                                ),
+                              ),
+                              Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: p.stock > 0
-                                      ? const Color(0xFFD1FAE5)
-                                      : const Color(0xFFFEE2E2),
-                                  borderRadius: BorderRadius.circular(8),
+                                  horizontal: 12,
                                 ),
                                 child: Text(
-                                  p.stock > 0 ? 'Stok: ${p.stock} adet' : 'Stok Yok',
-                                  style: TextStyle(
-                                      color: p.stock > 0 ? _kSuccess : _kDanger,
-                                      fontSize: 11, fontWeight: FontWeight.w700),
+                                  '$_qty',
+                                  style: const TextStyle(
+                                    color: _kText,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              _qtyBtn(
+                                '+',
+                                () => setState(
+                                  () => _qty = (_qty + 1).clamp(1, p.stock),
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                        const SizedBox(width: 10),
 
-                          const SizedBox(height: 14),
-
-                          Text(p.name.tr,
-                              style: const TextStyle(
-                                  color: _kText, fontSize: 22,
-                                  fontWeight: FontWeight.w900, height: 1.2)),
-
-                          if (p.name.en.trim().isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(p.name.en,
-                                style: const TextStyle(
-                                    color: _kTextHint, fontSize: 13)),
-                          ],
-
-                          const SizedBox(height: 16),
-
-                          // Fiyat
-                          Text('₺${p.price.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                  color: _kPrimary, fontSize: 32,
-                                  fontWeight: FontWeight.w900, letterSpacing: -1)),
-
-                          const SizedBox(height: 20),
-                          const Divider(color: _kBorder, thickness: 1),
-                          const SizedBox(height: 16),
-
-                          // Açıklama
-                          const Text('AÇIKLAMA',
-                              style: TextStyle(
-                                  color: _kTextHint, fontSize: 11,
-                                  fontWeight: FontWeight.w700, letterSpacing: 1)),
-                          const SizedBox(height: 8),
-                          Text(
-                            p.description.tr.trim().isNotEmpty
-                                ? p.description.tr
-                                : 'Bu ürün için henüz açıklama eklenmemiş.',
-                            style: const TextStyle(
-                                color: _kTextSub, fontSize: 14, height: 1.75),
-                          ),
-
-                          // Etiketler
-                          if (p.tags.isNotEmpty) ...[
-                            const SizedBox(height: 16),
-                            Wrap(
-                              spacing: 8, runSpacing: 6,
-                              children: p.tags
-                                  .map((t) => Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: _kPrimaryBg,
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: _kPrimaryBorder),
-                                        ),
-                                        child: Text('#$t',
-                                            style: const TextStyle(
-                                                color: _kPrimary,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600)),
-                                      ))
-                                  .toList(),
+                        // Sepete Ekle
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => widget.onAddToCart(_qty),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: _kPrimary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Sepete Ekle',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ],
-                        ],
-                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Satın Al
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => widget.onBuyNow(_qty),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: _kGreenMid,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Satın Al',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
-
-            // Alt buton çubuğu
-            if (p.stock > 0)
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: _kBorder)),
-                ),
-                child: Row(
-                  children: [
-                    // Miktar seçici
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _kSurface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _kBorder),
-                      ),
-                      child: Row(
-                        children: [
-                          _qtyBtn('−', () => setState(
-                              () => _qty = (_qty - 1).clamp(1, p.stock))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text('$_qty',
-                                style: const TextStyle(
-                                    color: _kText, fontSize: 16,
-                                    fontWeight: FontWeight.w700)),
-                          ),
-                          _qtyBtn('+', () => setState(
-                              () => _qty = (_qty + 1).clamp(1, p.stock))),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-
-                    // Sepete Ekle
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => widget.onAddToCart(_qty),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: _kPrimary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Text('Sepete Ekle',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 13,
-                                    fontWeight: FontWeight.w700)),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Satın Al
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => widget.onBuyNow(_qty),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: _kGreenMid,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Center(
-                            child: Text('Satın Al',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 13,
-                                    fontWeight: FontWeight.w700)),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
   Widget _qtyBtn(String label, VoidCallback onTap) => GestureDetector(
-        onTap: onTap,
-        child: SizedBox(
-          width: 40, height: 46,
-          child: Center(
-            child: Text(label,
-                style: const TextStyle(
-                    color: _kText, fontSize: 20, fontWeight: FontWeight.w400)),
+    onTap: onTap,
+    child: SizedBox(
+      width: 40,
+      height: 46,
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: _kText,
+            fontSize: 20,
+            fontWeight: FontWeight.w400,
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1071,18 +1593,18 @@ class _CheckoutSheet extends StatefulWidget {
 }
 
 class _CheckoutSheetState extends State<_CheckoutSheet> {
-  final _streetCtrl  = TextEditingController();
-  final _cityCtrl    = TextEditingController();
+  final _streetCtrl = TextEditingController();
   final _countryCtrl = TextEditingController(text: 'Türkiye');
-  final _zipCtrl     = TextEditingController();
-  String _payment    = 'credit_card';
-  bool   _loading    = false;
+  final _zipCtrl = TextEditingController();
+  String? _selectedCity;
+  String _payment = 'credit_card';
+  bool _loading = false;
 
   final _service = OrdersService();
 
   Future<void> _place() async {
     if (_streetCtrl.text.trim().isEmpty ||
-        _cityCtrl.text.trim().isEmpty   ||
+        _selectedCity == null ||
         _zipCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1096,10 +1618,10 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     try {
       await _service.create(
         shippingAddress: Address(
-          street:  _streetCtrl.text.trim(),
-          city:    _cityCtrl.text.trim(),
+          street: _streetCtrl.text.trim(),
+          city: _selectedCity!,
           country: _countryCtrl.text.trim(),
-          zip:     _zipCtrl.text.trim(),
+          zip: _zipCtrl.text.trim(),
         ),
         paymentMethod: _payment,
       );
@@ -1108,8 +1630,9 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Sipariş verilemedi.'),
-              backgroundColor: _kDanger),
+            content: Text('Sipariş verilemedi.'),
+            backgroundColor: _kDanger,
+          ),
         );
       }
     } finally {
@@ -1120,7 +1643,9 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -1134,9 +1659,12 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             children: [
               Center(
                 child: Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
-                      color: _kBorder, borderRadius: BorderRadius.circular(2)),
+                    color: _kBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -1145,38 +1673,58 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               Row(
                 children: [
                   Container(
-                    width: 36, height: 36,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                        color: _kPrimaryBg, borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.local_shipping_outlined,
-                        color: _kPrimary, size: 20),
+                      color: _kPrimaryBg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.local_shipping_outlined,
+                      color: _kPrimary,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 10),
-                  const Text('Teslimat & Ödeme',
-                      style: TextStyle(
-                          color: _kText, fontSize: 18, fontWeight: FontWeight.w800)),
+                  const Text(
+                    'Teslimat & Ödeme',
+                    style: TextStyle(
+                      color: _kText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ],
               ),
 
               const SizedBox(height: 20),
 
-              _field('Sokak *',       _streetCtrl,  'Atatürk Cad. No:5'),
-              _field('Şehir *',       _cityCtrl,    'İstanbul'),
-              _field('Ülke',          _countryCtrl, 'Türkiye'),
-              _field('Posta Kodu *',  _zipCtrl,     '34000',
-                  keyboard: TextInputType.number),
+              _field('Sokak *', _streetCtrl, 'Atatürk Cad. No:5'),
+              _cityDropdown(),
+              _field('Ülke', _countryCtrl, 'Türkiye'),
+              _field(
+                'Posta Kodu *',
+                _zipCtrl,
+                '34000',
+                keyboard: TextInputType.number,
+              ),
 
               const SizedBox(height: 20),
 
-              const Text('Ödeme Yöntemi',
-                  style: TextStyle(
-                      color: _kText, fontSize: 15, fontWeight: FontWeight.w700)),
+              const Text(
+                'Ödeme Yöntemi',
+                style: TextStyle(
+                  color: _kText,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 10),
 
               ...[
-                ('credit_card',      'Kredi Kartı',    Icons.credit_card),
-                ('bank_transfer',    'Havale / EFT',   Icons.account_balance),
-                ('cash_on_delivery', 'Kapıda Ödeme',   Icons.local_shipping),
+                ('credit_card', 'Kredi Kartı', Icons.credit_card),
+                ('bank_transfer', 'Havale / EFT', Icons.account_balance),
+                ('cash_on_delivery', 'Kapıda Ödeme', Icons.local_shipping),
               ].map((o) => _payOpt(o.$1, o.$2, o.$3)),
 
               const SizedBox(height: 24),
@@ -1190,18 +1738,28 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                     disabledBackgroundColor: _kPrimary.withAlpha(100),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
-                  child: _loading
-                      ? const SizedBox(
-                          height: 20, width: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : const Text('Siparişi Onayla',
-                          style: TextStyle(
-                              color: Colors.white, fontSize: 16,
-                              fontWeight: FontWeight.w700)),
+                  child:
+                      _loading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Text(
+                            'Siparişi Onayla',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                 ),
               ),
             ],
@@ -1211,78 +1769,153 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     );
   }
 
-  Widget _field(String label, TextEditingController ctrl, String hint,
-      {TextInputType keyboard = TextInputType.text}) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 5),
-            child: Text(label,
-                style: const TextStyle(
-                    color: _kTextSub, fontSize: 12, fontWeight: FontWeight.w600)),
-          ),
-          TextField(
-            controller: ctrl,
-            keyboardType: keyboard,
-            style: const TextStyle(color: _kText, fontSize: 14),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: _kTextHint, fontSize: 13),
-              filled: true,
-              fillColor: _kSurface,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: _kBorder)),
-              enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: _kBorder)),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: _kPrimary, width: 1.5)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              isDense: true,
-            ),
-          ),
-        ],
-      );
-
-  Widget _payOpt(String id, String label, IconData icon) => GestureDetector(
-        onTap: () => setState(() => _payment = id),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: _payment == id ? _kPrimaryBg : _kSurface,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-                color: _payment == id ? _kPrimary : _kBorder,
-                width: _payment == id ? 1.5 : 1),
-          ),
-          child: Row(
-            children: [
-              Icon(icon,
-                  size: 18,
-                  color: _payment == id ? _kPrimary : _kTextHint),
-              const SizedBox(width: 12),
-              Text(label,
-                  style: TextStyle(
-                      color: _payment == id ? _kText : _kTextSub,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600)),
-              const Spacer(),
-              if (_payment == id)
-                const Icon(Icons.check_circle, color: _kPrimary, size: 18),
-            ],
+  Widget _field(
+    String label,
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType keyboard = TextInputType.text,
+  }) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 5),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: _kTextSub,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      );
+      ),
+      TextField(
+        controller: ctrl,
+        keyboardType: keyboard,
+        style: const TextStyle(color: _kText, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: _kTextHint, fontSize: 13),
+          filled: true,
+          fillColor: _kSurface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _kBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _kBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+          isDense: true,
+        ),
+      ),
+    ],
+  );
+
+  Widget _cityDropdown() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Padding(
+        padding: EdgeInsets.only(top: 12, bottom: 5),
+        child: Text(
+          'Şehir *',
+          style: TextStyle(
+            color: _kTextSub,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      DropdownButtonFormField<String>(
+        value: _selectedCity,
+        isExpanded: true,
+        menuMaxHeight: 320,
+        hint: const Text(
+          'Şehir seçin',
+          style: TextStyle(color: _kTextHint, fontSize: 13),
+        ),
+        items:
+            _turkishCities
+                .map(
+                  (city) => DropdownMenuItem(
+                    value: city,
+                    child: Text(
+                      city,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: _kText, fontSize: 14),
+                    ),
+                  ),
+                )
+                .toList(),
+        onChanged: (value) => setState(() => _selectedCity = value),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: _kSurface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _kBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _kBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+          isDense: true,
+        ),
+      ),
+    ],
+  );
+
+  Widget _payOpt(String id, String label, IconData icon) => GestureDetector(
+    onTap: () => setState(() => _payment = id),
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _payment == id ? _kPrimaryBg : _kSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: _payment == id ? _kPrimary : _kBorder,
+          width: _payment == id ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: _payment == id ? _kPrimary : _kTextHint),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              color: _payment == id ? _kText : _kTextSub,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          if (_payment == id)
+            const Icon(Icons.check_circle, color: _kPrimary, size: 18),
+        ],
+      ),
+    ),
+  );
 
   @override
   void dispose() {
     _streetCtrl.dispose();
-    _cityCtrl.dispose();
     _countryCtrl.dispose();
     _zipCtrl.dispose();
     super.dispose();

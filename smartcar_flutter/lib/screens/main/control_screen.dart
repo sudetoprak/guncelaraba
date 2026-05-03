@@ -10,7 +10,7 @@ import '../../services/api_client.dart';
 const String _carId = 'car1';
 
 // ESP32 AP modunda bu IP'de çalışır
-const String _esp32BaseUrl = 'http://10.245.7.154';
+const String _esp32BaseUrl = 'http://192.168.4.1';
 
 class ControlScreen extends StatefulWidget {
   const ControlScreen({super.key});
@@ -21,11 +21,13 @@ class ControlScreen extends StatefulWidget {
 
 class _ControlScreenState extends State<ControlScreen> {
   final _storage = const FlutterSecureStorage();
-  final _espDio = Dio(BaseOptions(
-    connectTimeout: const Duration(milliseconds: 800),
-    receiveTimeout: const Duration(milliseconds: 800),
-    sendTimeout: const Duration(milliseconds: 800),
-  ));
+  final _espDio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(milliseconds: 800),
+      receiveTimeout: const Duration(milliseconds: 800),
+      sendTimeout: const Duration(milliseconds: 800),
+    ),
+  );
 
   Timer? _pingTimer;
   bool _espConnected = false;
@@ -81,10 +83,10 @@ class _ControlScreenState extends State<ControlScreen> {
     } else if (!ok && _espConnected) {
       setState(() {
         _espConnected = false;
-        _statusMsg = 'ESP32 bağlantısı kesildi (192.168.123.78)';
+        _statusMsg = 'ESP32 bağlantısı kesildi (192.168.4.1)';
       });
     } else if (!ok) {
-      setState(() => _statusMsg = 'ESP32 bekleniyor... (192.168.123.78)');
+      setState(() => _statusMsg = 'ESP32 bekleniyor... (192.168.4.1)');
     }
   }
 
@@ -95,7 +97,7 @@ class _ControlScreenState extends State<ControlScreen> {
 
     // 1. ESP32'ye direkt gönder
     try {
-      await _espDio.get('$_esp32BaseUrl/control?cmd=$command');
+      await _espDio.get('$_esp32BaseUrl/cmd?c=$command');
       reached = true;
     } catch (_) {
       // ESP32'ye ulaşılamadı — yine de log'la
@@ -114,18 +116,22 @@ class _ControlScreenState extends State<ControlScreen> {
     _logToBackend(command, latency, reached);
   }
 
-  Future<void> _logToBackend(String command, int latencyMs, bool carReached) async {
+  Future<void> _logToBackend(
+    String command,
+    int latencyMs,
+    bool carReached,
+  ) async {
     try {
       final token = await _storage.read(key: 'access_token');
       if (token == null) return;
       await ApiClient().dio.post(
         '/logs/command',
         data: {
-          'car_id':     _carId,
-          'command':    command,
-          'x':          _joystickOffset.dx / _maxDist,
-          'y':          _joystickOffset.dy / _maxDist,
-          'speed':      _speed,
+          'car_id': _carId,
+          'command': command,
+          'x': _joystickOffset.dx / _maxDist,
+          'y': _joystickOffset.dy / _maxDist,
+          'speed': _speed,
           'latency_ms': latencyMs,
           'car_reached': carReached,
         },
@@ -141,18 +147,19 @@ class _ControlScreenState extends State<ControlScreen> {
     final dist = delta.distance;
     final clampedDist = min(dist, _maxDist);
     final angle = atan2(delta.dy, delta.dx);
-    final clamped = Offset(
-      clampedDist * cos(angle),
-      clampedDist * sin(angle),
-    );
+    final clamped = Offset(clampedDist * cos(angle), clampedDist * sin(angle));
 
     String cmd = 'stop';
     if (dist > 20) {
       final deg = angle * 180 / pi;
-      if (deg > -45 && deg < 45) cmd = 'right';
-      else if (deg >= 45 && deg < 135) cmd = 'backward';
-      else if (deg >= -135 && deg < -45) cmd = 'forward';
-      else cmd = 'left';
+      if (deg > -45 && deg < 45)
+        cmd = 'right';
+      else if (deg >= 45 && deg < 135)
+        cmd = 'backward';
+      else if (deg >= -135 && deg < -45)
+        cmd = 'forward';
+      else
+        cmd = 'left';
     }
 
     setState(() => _joystickOffset = clamped);
@@ -213,9 +220,10 @@ class _ControlScreenState extends State<ControlScreen> {
             height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _espConnected
-                  ? const Color(0xFF22C55E)
-                  : const Color(0xFFEF4444),
+              color:
+                  _espConnected
+                      ? const Color(0xFF22C55E)
+                      : const Color(0xFFEF4444),
             ),
           ),
           const SizedBox(width: 10),
@@ -247,9 +255,10 @@ class _ControlScreenState extends State<ControlScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _carReached
-              ? const Color(0xFF22C55E).withOpacity(0.4)
-              : const Color(0xFFEF4444).withOpacity(0.4),
+          color:
+              _carReached
+                  ? const Color(0xFF22C55E).withOpacity(0.4)
+                  : const Color(0xFFEF4444).withOpacity(0.4),
         ),
       ),
       child: Row(
@@ -258,13 +267,16 @@ class _ControlScreenState extends State<ControlScreen> {
           Icon(
             _carReached ? Icons.check_circle : Icons.cancel,
             size: 16,
-            color: _carReached ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+            color:
+                _carReached ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
           ),
           const SizedBox(width: 8),
           Text(
             'Son komut: $_lastCmd',
             style: const TextStyle(
-                color: Color(0xFF0F172A), fontWeight: FontWeight.w600),
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.w600,
+            ),
           ),
           if (_lastLatency != null) ...[
             const SizedBox(width: 12),
@@ -323,29 +335,33 @@ class _ControlScreenState extends State<ControlScreen> {
     final speeds = [50, 100, 150, 200, 250];
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: speeds.map((s) {
-        final active = _speed == s;
-        return GestureDetector(
-          onTap: () => setState(() => _speed = s),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: active ? const Color(0xFFCC0000) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFCC0000), width: 2),
-            ),
-            child: Text(
-              '$s',
-              style: TextStyle(
-                color: active ? Colors.white : const Color(0xFFCC0000),
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+      children:
+          speeds.map((s) {
+            final active = _speed == s;
+            return GestureDetector(
+              onTap: () => setState(() => _speed = s),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: active ? const Color(0xFFCC0000) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFCC0000), width: 2),
+                ),
+                child: Text(
+                  '$s',
+                  style: TextStyle(
+                    color: active ? Colors.white : const Color(0xFFCC0000),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 
