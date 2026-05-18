@@ -40,7 +40,7 @@ async def controller_ws(
     ip = websocket.client.host if websocket.client else "unknown"
 
     # Rate limit kontrolü
-    if not check_ws_rate_limit(ip, limit=30):
+    if not await check_ws_rate_limit(ip, limit=30):
         await websocket.close(code=1008)
         return
 
@@ -67,7 +67,7 @@ async def controller_ws(
             raw = await websocket.receive_text()
 
             # Komut rate limit
-            if not check_ws_rate_limit(f"cmd_{ip}", limit=120):
+            if not await check_ws_rate_limit(f"cmd_{ip}", limit=120):
                 await websocket.send_text(json.dumps({
                     "type": "error",
                     "message": "Çok hızlı komut gönderiyorsunuz"

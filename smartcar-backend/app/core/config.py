@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     CORS_ORIGINS: str = '["http://localhost:3000"]'
     RATE_LIMIT_PER_MINUTE: int = 60
+    AUTH_RATE_LIMIT_PER_MINUTE: int = 10
     WS_RATE_LIMIT_PER_MINUTE: int = 120
+    RATE_LIMIT_BLOCK_MINUTES: int = 30
+    TRUST_PROXY_HEADERS: bool = True
     ENVIRONMENT: str = "development"
     CAR_DEVICE_SECRET: str = "smartcar-esp32-secret-2024"
     SERVER_BASE_URL: str = "http://100.114.176.17:8000"
