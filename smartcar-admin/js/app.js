@@ -92,6 +92,12 @@ function cmdBadge(cmd) {
 /* ─── SAYFA GEÇİŞİ ───────────────────────────────────────────── */
 
 function navigate(page) {
+  const visiblePages = ['dashboard', 'users', 'orders', 'products'];
+  if (!visiblePages.includes(page)) {
+    page = 'dashboard';
+    if (location.hash && location.hash !== '#dashboard') location.hash = '#dashboard';
+  }
+
   if (currentPage === 'logs' && page !== 'logs') {
     stopAdminLiveWS();
     stopLogsPolling();
@@ -104,7 +110,7 @@ function navigate(page) {
 
   const titles = {
     dashboard: 'Dashboard', users: 'Kullanıcılar', orders: 'Siparişler',
-    products: 'Ürünler', logs: 'Komut Logları', cars: 'Bağlı Arabalar',
+    products: 'Ürünler',
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   document.getElementById('topbar-actions').innerHTML = '';
@@ -115,8 +121,6 @@ function navigate(page) {
     case 'users':     renderUsers();     break;
     case 'orders':    renderOrders();    break;
     case 'products':  renderProducts();  break;
-    case 'logs':      renderLogs();      break;
-    case 'cars':      renderCars();      break;
   }
 }
 
