@@ -1,11 +1,6 @@
 /* ─── API MODÜLÜ ─────────────────────────────────────────────── */
 
-// Backend URL: SC_BACKEND_ORIGIN ile override edilebilir,
-// aksi hâlde tarayıcının hostname'ine göre otomatik belirlenir.
-window.BACKEND_ORIGIN = window.SC_BACKEND_ORIGIN
-  || (['localhost', '127.0.0.1'].includes(window.location.hostname)
-      ? 'http://localhost:8000'
-      : `http://${window.location.hostname}:8000`);
+window.BACKEND_ORIGIN = 'http://100.114.176.17:8000';
 
 const BASE = window.BACKEND_ORIGIN + '/api/v1';
 
