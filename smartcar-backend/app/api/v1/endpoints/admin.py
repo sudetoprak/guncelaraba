@@ -10,6 +10,85 @@ from app.services.ws_manager import manager
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
+
+async def product_owner_query(db, admin: dict) -> dict:
+    first_admin = await db.admins.find_one({}, sort=[("created_at", 1)])
+    if first_admin and first_admin.get("_id") == admin["_id"]:
+        return {"$or": [{"owner_id": admin["_id"]}, {"owner_id": {"$exists": False}}]}
+    return {"owner_id": admin["_id"]}
+
+
+async def is_super_admin(db, admin: dict) -> bool:
+    first_admin = await db.admins.find_one({}, sort=[("created_at", 1)])
+    return bool(first_admin and first_admin.get("_id") == admin["_id"])
+
+
+async def require_super_admin(db, admin: dict):
+    if not await is_super_admin(db, admin):
+        raise HTTPException(403, "Bu alan sadece ana admin tarafindan gorulebilir")
+
+
+def combine_query(*parts: dict) -> dict:
+    clean = [part for part in parts if part]
+    if not clean:
+        return {}
+    if len(clean) == 1:
+        return clean[0]
+    return {"$and": clean}
+
+
+async def owned_product_ids(db, admin: dict) -> list:
+    owner_filter = await product_owner_query(db, admin)
+    products = await db.products.find(owner_filter, {"_id": 1}).to_list(length=None)
+    return [product["_id"] for product in products]
+
+
+def seller_order_query(product_ids: list, extra: Optional[dict] = None) -> dict:
+    if not product_ids:
+        return {"_id": {"$exists": False}}
+    return combine_query({"items.product_id": {"$in": product_ids}}, extra or {})
+
+
+async def seller_revenue(db, product_ids: list, date_filter: Optional[dict] = None) -> float:
+    if not product_ids:
+        return 0.0
+
+    match_query = seller_order_query(
+        product_ids,
+        {"status": {"$in": ["paid", "shipped", "delivered"]}},
+    )
+    if date_filter:
+        match_query = combine_query(match_query, {"created_at": date_filter})
+
+    pipeline = [
+        {"$match": match_query},
+        {"$unwind": "$items"},
+        {"$match": {"items.product_id": {"$in": product_ids}}},
+        {"$group": {
+            "_id": None,
+            "total": {
+                "$sum": {
+                    "$ifNull": [
+                        "$items.subtotal",
+                        {"$multiply": ["$items.price", "$items.quantity"]},
+                    ]
+                }
+            },
+        }},
+    ]
+    result = await db.orders.aggregate(pipeline).to_list(length=1)
+    return result[0]["total"] if result else 0.0
+
+
+def seller_order_total(order: dict, product_ids: list) -> float:
+    product_id_set = set(product_ids)
+    total = 0.0
+    for item in order.get("items", []):
+        if item.get("product_id") in product_id_set:
+            total += item.get("subtotal", item.get("price", 0) * item.get("quantity", 0))
+    return total
+
+
 def normalize_category(category: Optional[str]) -> Optional[str]:
     if category is None:
         return None
@@ -34,28 +113,29 @@ async def dashboard(admin=Depends(get_current_admin)):
     active_users    = await db.users.count_documents({"is_active": True})
     new_today_users = await db.users.count_documents({"created_at": {"$gte": today_start}})
 
-    total_orders = await db.orders.count_documents({})
-    today_orders = await db.orders.count_documents({"created_at": {"$gte": today_start}})
+    product_ids = await owned_product_ids(db, admin)
+    total_orders = await db.orders.count_documents(seller_order_query(product_ids))
+    today_orders = await db.orders.count_documents(
+        seller_order_query(product_ids, {"created_at": {"$gte": today_start}})
+    )
 
-    status_pipeline = [{"$group": {"_id": "$status", "count": {"$sum": 1}}}]
+    status_pipeline = [
+        {"$match": seller_order_query(product_ids)},
+        {"$group": {"_id": "$status", "count": {"$sum": 1}}},
+    ]
     status_dist_raw = await db.orders.aggregate(status_pipeline).to_list(length=10)
     by_status       = {item["_id"]: item["count"] for item in status_dist_raw}
 
-    rev_pipeline = [
-        {"$match": {"status": {"$in": ["paid", "shipped", "delivered"]}}},
-        {"$group": {"_id": None, "total": {"$sum": "$total"}}},
-    ]
-    rev_today_pipeline = [
-        {"$match": {"status": {"$in": ["paid", "shipped", "delivered"]}, "created_at": {"$gte": today_start}}},
-        {"$group": {"_id": None, "total": {"$sum": "$total"}}},
-    ]
-    rev_result       = await db.orders.aggregate(rev_pipeline).to_list(length=1)
-    rev_today_result = await db.orders.aggregate(rev_today_pipeline).to_list(length=1)
-    revenue_total    = rev_result[0]["total"] if rev_result else 0.0
-    revenue_today    = rev_today_result[0]["total"] if rev_today_result else 0.0
+    revenue_total = await seller_revenue(db, product_ids)
+    revenue_today = await seller_revenue(db, product_ids, {"$gte": today_start})
 
-    active_products    = await db.products.count_documents({"is_active": True})
-    low_stock_products = await db.products.count_documents({"is_active": True, "stock": {"$lte": 5}})
+    product_owner_filter = await product_owner_query(db, admin)
+    active_products = await db.products.count_documents({**product_owner_filter, "is_active": True})
+    low_stock_products = await db.products.count_documents({
+        **product_owner_filter,
+        "is_active": True,
+        "stock": {"$lte": 5},
+    })
 
     ws_status = manager.get_status()
 
@@ -90,6 +170,7 @@ async def get_charts(admin=Depends(get_current_admin)):
     db = get_db()
     from datetime import timedelta
     now = datetime.utcnow()
+    product_ids = await owned_product_ids(db, admin)
 
     days = []
     for i in range(29, -1, -1):
@@ -99,24 +180,17 @@ async def get_charts(admin=Depends(get_current_admin)):
 
     revenue_chart = []
     for day_start, day_end in days:
-        pipe = [
-            {"$match": {
-                "status": {"$in": ["paid", "shipped", "delivered"]},
-                "created_at": {"$gte": day_start, "$lt": day_end},
-            }},
-            {"$group": {"_id": None, "total": {"$sum": "$total"}}},
-        ]
-        result = await db.orders.aggregate(pipe).to_list(length=1)
+        total = await seller_revenue(db, product_ids, {"$gte": day_start, "$lt": day_end})
         revenue_chart.append({
             "date":  day_start.strftime("%d/%m"),
-            "total": round(result[0]["total"], 2) if result else 0.0,
+            "total": round(total, 2),
         })
 
     orders_chart = []
     for day_start, day_end in days:
-        count = await db.orders.count_documents({
-            "created_at": {"$gte": day_start, "$lt": day_end}
-        })
+        count = await db.orders.count_documents(
+            seller_order_query(product_ids, {"created_at": {"$gte": day_start, "$lt": day_end}})
+        )
         orders_chart.append({
             "date":  day_start.strftime("%d/%m"),
             "count": count,
@@ -133,14 +207,15 @@ async def get_charts(admin=Depends(get_current_admin)):
 @router.get("/recent-orders")
 async def recent_orders(admin=Depends(get_current_admin)):
     db = get_db()
-    cursor = db.orders.find({}).sort("created_at", -1).limit(5)
+    product_ids = await owned_product_ids(db, admin)
+    cursor = db.orders.find(seller_order_query(product_ids)).sort("created_at", -1).limit(5)
     orders = await cursor.to_list(length=5)
     result = []
     for o in orders:
         result.append({
             "id":         str(o["_id"]),
             "user_id":    str(o["user_id"]),
-            "total":      o.get("total", 0),
+            "total":      seller_order_total(o, product_ids),
             "status":     o.get("status", ""),
             "created_at": o["created_at"].isoformat() if o.get("created_at") else None,
         })
@@ -152,8 +227,9 @@ async def recent_orders(admin=Depends(get_current_admin)):
 @router.get("/low-stock")
 async def low_stock_products_list(admin=Depends(get_current_admin)):
     db = get_db()
+    owner_filter = await product_owner_query(db, admin)
     cursor = db.products.find(
-        {"is_active": True, "stock": {"$lte": 10}}
+        {**owner_filter, "is_active": True, "stock": {"$lte": 10}}
     ).sort("stock", 1).limit(8)
     products = await cursor.to_list(length=8)
     result = []
@@ -190,6 +266,7 @@ async def list_users(
     admin=Depends(get_current_admin),
 ):
     db = get_db()
+    await require_super_admin(db, admin)
     skip = (page - 1) * limit
 
     search_filter: dict = {}
@@ -238,9 +315,34 @@ async def _find_user_any_col(db, oid):
     return None, None
 
 
+async def _identity_exists(db, email: str, username: str, exclude_id=None) -> bool:
+    query = {"$or": [{"email": email}, {"username": username}]}
+    if exclude_id is not None:
+        query["_id"] = {"$ne": exclude_id}
+    pending_query = {**query, "status": "pending"}
+    return any([
+        await db.users.find_one(query),
+        await db.admins.find_one(query),
+        await db.pending_admins.find_one(pending_query),
+    ])
+
+
+def _serialize_admin_request(req: dict) -> dict:
+    req["id"] = str(req["_id"])
+    del req["_id"]
+    req.pop("password_hash", None)
+    for key, value in list(req.items()):
+        if isinstance(value, ObjectId):
+            req[key] = str(value)
+        elif isinstance(value, datetime):
+            req[key] = value.isoformat()
+    return req
+
+
 @router.get("/users/{user_id}")
 async def get_user(user_id: str, admin=Depends(get_current_admin)):
     db = get_db()
+    await require_super_admin(db, admin)
     try:
         oid = ObjectId(user_id)
     except Exception:
@@ -254,6 +356,7 @@ async def get_user(user_id: str, admin=Depends(get_current_admin)):
 @router.patch("/users/{user_id}")
 async def update_user(user_id: str, data: dict, admin=Depends(get_current_admin)):
     db = get_db()
+    await require_super_admin(db, admin)
     try:
         oid = ObjectId(user_id)
     except Exception:
@@ -270,9 +373,20 @@ async def update_user(user_id: str, data: dict, admin=Depends(get_current_admin)
     if not update:
         raise HTTPException(400, "Güncellenecek geçerli alan yok")
 
+    target_role = update.get("role", user.get("role", "user"))
+    source_collection = db.admins if col_name == "admins" else db.users
+    target_collection = db.admins if target_role == "admin" else db.users
+
+    if target_collection != source_collection:
+        if await _identity_exists(db, user["email"], user["username"], exclude_id=oid):
+            raise HTTPException(400, "Bu email veya kullanici adi baska bir hesapta kayitli")
+        moved_user = {**user, **update, "role": target_role, "updated_at": datetime.utcnow()}
+        await target_collection.insert_one(moved_user)
+        await source_collection.delete_one({"_id": oid})
+        return _serialize_user(moved_user)
+
     update["updated_at"] = datetime.utcnow()
-    collection = db.admins if col_name == "admins" else db.users
-    result = await collection.find_one_and_update(
+    result = await source_collection.find_one_and_update(
         {"_id": oid},
         {"$set": update},
         return_document=True,
@@ -285,6 +399,7 @@ async def update_user(user_id: str, data: dict, admin=Depends(get_current_admin)
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: str, admin=Depends(get_current_admin)):
     db = get_db()
+    await require_super_admin(db, admin)
     try:
         oid = ObjectId(user_id)
     except Exception:
@@ -300,6 +415,70 @@ async def delete_user(user_id: str, admin=Depends(get_current_admin)):
 
 
 # ─── SİPARİŞ YARDIMCILARI ────────────────────────────────────────────────────
+
+@router.get("/admin-requests")
+@router.get("/user-requests")
+async def list_admin_requests(admin=Depends(get_current_admin)):
+    db = get_db()
+    await require_super_admin(db, admin)
+    cursor = db.pending_admins.find({"status": "pending"}).sort("created_at", -1)
+    requests = await cursor.to_list(length=None)
+    return {"requests": [_serialize_admin_request(req) for req in requests]}
+
+
+@router.post("/admin-requests/{request_id}/approve")
+@router.post("/user-requests/{request_id}/approve")
+async def approve_admin_request(request_id: str, admin=Depends(get_current_admin)):
+    db = get_db()
+    await require_super_admin(db, admin)
+    try:
+        oid = ObjectId(request_id)
+    except Exception:
+        raise HTTPException(400, "Gecersiz basvuru ID")
+
+    request = await db.pending_admins.find_one({"_id": oid, "status": "pending"})
+    if not request:
+        raise HTTPException(404, "Kullanici basvurusu bulunamadi")
+    if await _identity_exists(db, request["email"], request["username"], exclude_id=oid):
+        raise HTTPException(400, "Bu email veya kullanici adi baska bir hesapta kayitli")
+
+    admin_doc = dict(request)
+    admin_doc.pop("status", None)
+    admin_doc["role"] = "admin"
+    admin_doc["is_active"] = True
+    admin_doc["approved_by"] = admin.get("_id")
+    admin_doc["approved_at"] = datetime.utcnow()
+    admin_doc["updated_at"] = datetime.utcnow()
+
+    await db.admins.insert_one(admin_doc)
+    await db.pending_admins.delete_one({"_id": oid})
+    return _serialize_user(admin_doc)
+
+
+@router.post("/admin-requests/{request_id}/reject")
+@router.post("/user-requests/{request_id}/reject")
+async def reject_admin_request(request_id: str, admin=Depends(get_current_admin)):
+    db = get_db()
+    await require_super_admin(db, admin)
+    try:
+        oid = ObjectId(request_id)
+    except Exception:
+        raise HTTPException(400, "Gecersiz basvuru ID")
+
+    result = await db.pending_admins.find_one_and_update(
+        {"_id": oid, "status": "pending"},
+        {"$set": {
+            "status": "rejected",
+            "rejected_by": admin.get("_id"),
+            "rejected_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }},
+        return_document=True,
+    )
+    if not result:
+        raise HTTPException(404, "Kullanici basvurusu bulunamadi")
+    return {"message": "Kullanici basvurusu reddedildi"}
+
 
 def _serialize_order(o: dict) -> dict:
     o["id"]      = str(o["_id"])
@@ -347,13 +526,18 @@ async def list_orders(
             query["user_id"] = ObjectId(user_id)
         except Exception:
             pass
+    product_ids = await owned_product_ids(db, admin)
+    query = seller_order_query(product_ids, query)
 
     skip   = (page - 1) * limit
     cursor = db.orders.find(query).sort("created_at", -1).skip(skip).limit(limit)
     raw    = await cursor.to_list(length=limit)
     total  = await db.orders.count_documents(query)
 
+    raw_by_id = {str(o["_id"]): o for o in raw}
     orders = [_serialize_order(o) for o in raw]
+    for o in orders:
+        o["total"] = seller_order_total(raw_by_id[o["id"]], product_ids)
 
     # Kullanıcı bilgilerini toplu getir
     uid_set  = {o["user_id"] for o in orders}
@@ -375,10 +559,13 @@ async def get_order(order_id: str, admin=Depends(get_current_admin)):
         oid = ObjectId(order_id)
     except Exception:
         raise HTTPException(400, "Geçersiz sipariş ID")
-    order = await db.orders.find_one({"_id": oid})
+    product_ids = await owned_product_ids(db, admin)
+    order = await db.orders.find_one(seller_order_query(product_ids, {"_id": oid}))
     if not order:
         raise HTTPException(404, "Sipariş bulunamadı")
+    raw_order = dict(order)
     order = _serialize_order(order)
+    order["total"] = seller_order_total(raw_order, product_ids)
     order["user"] = await _get_user_info(db, order["user_id"])
     return order
 
@@ -394,8 +581,9 @@ async def update_order_status(order_id: str, data: dict, admin=Depends(get_curre
         oid = ObjectId(order_id)
     except Exception:
         raise HTTPException(400, "Geçersiz sipariş ID")
+    product_ids = await owned_product_ids(db, admin)
     result = await db.orders.find_one_and_update(
-        {"_id": oid},
+        seller_order_query(product_ids, {"_id": oid}),
         {"$set": {"status": new_status, "updated_at": datetime.utcnow()}},
         return_document=True,
     )
@@ -417,18 +605,24 @@ async def list_admin_products(
     admin=Depends(get_current_admin),
 ):
     db = get_db()
-    query: dict = {} if include_inactive else {"is_active": True}
+    query: dict = {}
+    filters = [await product_owner_query(db, admin)]
+    if not include_inactive:
+        filters.append({"is_active": True})
     if category:
         normalized = normalize_category(category)
-        query["category"] = {"$regex": f"^{re.escape(normalized)}$", "$options": "i"}
+        filters.append({"category": {"$regex": f"^{re.escape(normalized)}$", "$options": "i"}})
     if search:
-        query["$or"] = [
-            {"name.tr":        {"$regex": search, "$options": "i"}},
-            {"name.en":        {"$regex": search, "$options": "i"}},
-            {"description.tr": {"$regex": search, "$options": "i"}},
-        ]
+        filters.append({
+            "$or": [
+                {"name.tr":        {"$regex": search, "$options": "i"}},
+                {"name.en":        {"$regex": search, "$options": "i"}},
+                {"description.tr": {"$regex": search, "$options": "i"}},
+            ]
+        })
     if low_stock_only:
-        query["stock"] = {"$lte": 5}
+        filters.append({"stock": {"$lte": 5}})
+    query = combine_query(*filters)
 
     skip     = (page - 1) * limit
     cursor   = db.products.find(query).sort("created_at", -1).skip(skip).limit(limit)
@@ -438,6 +632,8 @@ async def list_admin_products(
     for p in products:
         p["id"] = str(p["_id"])
         del p["_id"]
+        if isinstance(p.get("owner_id"), ObjectId):
+            p["owner_id"] = str(p["owner_id"])
 
     return {"total": total, "page": page, "products": products}
 
@@ -447,6 +643,7 @@ async def list_admin_products(
 @router.post("/users")
 async def create_user(data: dict, admin=Depends(get_current_admin)):
     db = get_db()
+    await require_super_admin(db, admin)
 
     required = {"email", "username", "password", "full_name"}
     if not required.issubset(data.keys()):
@@ -458,10 +655,8 @@ async def create_user(data: dict, admin=Depends(get_current_admin)):
 
     collection = db.admins if role == "admin" else db.users
 
-    if await collection.find_one({"email": data["email"]}):
-        raise HTTPException(400, "Bu email zaten kayıtlı")
-    if await collection.find_one({"username": data["username"]}):
-        raise HTTPException(400, "Bu kullanıcı adı alınmış")
+    if await _identity_exists(db, data["email"], data["username"]):
+        raise HTTPException(400, "Bu email veya kullanici adi zaten kayitli")
 
     new_user = {
         "email":         data["email"],

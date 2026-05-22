@@ -113,6 +113,9 @@ const API = {
   createUser: (data)        => apiFetch('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
   updateUser: (id, data)    => apiFetch(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteUser: (id)          => apiFetch(`/admin/users/${id}`, { method: 'DELETE' }),
+  getAdminRequests:     ()   => apiFetch('/admin/user-requests'),
+  approveAdminRequest: (id)  => apiFetch(`/admin/user-requests/${id}/approve`, { method: 'POST' }),
+  rejectAdminRequest:  (id)  => apiFetch(`/admin/user-requests/${id}/reject`, { method: 'POST' }),
 
   // Admin - Siparişler
   getOrders:         (params = {}) => apiFetch('/admin/orders?' + new URLSearchParams(params)),

@@ -9,6 +9,10 @@ const _productCache = {};
 // Backend origin — api.js'deki SERVER_BASE ile eşleşmeli
 window.BACKEND_ORIGIN = 'http://100.114.176.17:8000';
 
+function canManageUsers() {
+  return Boolean(currentUser?.is_super_admin);
+}
+
 /* ─── YARDIMCI FONKSİYONLAR ──────────────────────────────────── */
 
 function toast(msg, type = 'default') {
@@ -92,7 +96,8 @@ function cmdBadge(cmd) {
 /* ─── SAYFA GEÇİŞİ ───────────────────────────────────────────── */
 
 function navigate(page) {
-  const visiblePages = ['dashboard', 'users', 'orders', 'products'];
+  const visiblePages = ['dashboard', 'orders', 'products'];
+  if (canManageUsers()) visiblePages.push('users');
   if (!visiblePages.includes(page)) {
     page = 'dashboard';
     if (location.hash && location.hash !== '#dashboard') location.hash = '#dashboard';
@@ -151,6 +156,9 @@ function showLogin() {
 function showApp() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  document.querySelectorAll('.nav-item[data-page="users"]').forEach(el => {
+    el.classList.toggle('hidden', !canManageUsers());
+  });
   document.getElementById('sidebar-user').innerHTML =
     `<strong>${currentUser.username}</strong>${currentUser.email}`;
   const hash = location.hash.replace('#', '') || 'dashboard';
@@ -169,6 +177,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ─── KAYIT FORMU ─────────────────────────────────────────────── */
+const registerInfo = document.querySelector('#tab-register .alert-info');
+if (registerInfo) {
+  registerInfo.textContent = 'Ilk yetkili kullanici dogrudan olusturulur. Sonraki kullanici basvurulari onay bekler.';
+}
+
 document.getElementById('register-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('register-btn');
@@ -177,17 +190,22 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
   err.classList.add('hidden'); suc.classList.add('hidden');
   btn.disabled = true; btn.textContent = 'Oluşturuluyor...';
   try {
-    await API.adminRegister({
+    const result = await API.adminRegister({
       full_name: document.getElementById('reg-fullname').value,
       username:  document.getElementById('reg-username').value,
       email:     document.getElementById('reg-email').value,
       password:  document.getElementById('reg-password').value,
       phone:     document.getElementById('reg-phone').value || undefined,
     });
-    suc.textContent = 'Admin hesabı oluşturuldu! Şimdi giriş yapabilirsiniz.';
+    suc.textContent = 'Yetkili kullanici olusturuldu! Simdi giris yapabilirsiniz.';
+    if (result.status === 'pending') {
+      suc.textContent = 'Kullanici basvurunuz alindi. Giris yapabilmek icin onay gerekiyor.';
+    }
     suc.classList.remove('hidden');
     document.getElementById('register-form').reset();
-    setTimeout(() => document.querySelector('[data-tab="login"]').click(), 2000);
+    if (result.status !== 'pending') {
+      setTimeout(() => document.querySelector('[data-tab="login"]').click(), 2000);
+    }
   } catch (ex) {
     err.textContent = ex.message; err.classList.remove('hidden');
   } finally {
@@ -371,6 +389,10 @@ let usersPage = 1;
 const usersLimit = 20;
 
 async function renderUsers(page = 1) {
+  if (!canManageUsers()) {
+    navigate('dashboard');
+    return;
+  }
   usersPage = page;
   const searchVal = document.getElementById('user-search')?.value || '';
   const roleVal = document.getElementById('user-role-filter')?.value || '';
@@ -383,10 +405,15 @@ async function renderUsers(page = 1) {
     const params = { page, limit: usersLimit };
     if (searchVal) params.search = searchVal;
     if (roleVal) params.role = roleVal;
-    const { users, total } = await API.getUsers(params);
+    const [{ users, total }, requestRes] = await Promise.all([
+      API.getUsers(params),
+      API.getAdminRequests(),
+    ]);
+    const adminRequests = requestRes.requests || [];
     const totalPages = Math.ceil(total / usersLimit);
 
     document.getElementById('content').innerHTML = `
+      ${adminRequests.length ? renderAdminRequests(adminRequests) : ''}
       <div class="card">
         <div class="filters">
           <div class="form-group"><input type="text" id="user-search" placeholder="Ad, email, kullanıcı ara..." value="${searchVal}" /></div>
@@ -430,6 +457,52 @@ async function renderUsers(page = 1) {
     document.getElementById('user-search').addEventListener('keydown', e => { if (e.key==='Enter') renderUsers(1); });
   } catch (ex) {
     document.getElementById('content').innerHTML = `<div class="alert alert-danger">Kullanıcılar yüklenemedi: ${ex.message}</div>`;
+  }
+}
+
+function renderAdminRequests(requests) {
+  return `
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header">
+        <span class="card-title">Kullanici Onay Bekleyenler</span>
+        ${badge(String(requests.length), 'pending')}
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Basvuran</th><th>E-posta</th><th>Telefon</th><th>Tarih</th><th>Islem</th></tr></thead>
+          <tbody>${requests.map(r => `
+            <tr>
+              <td><strong>${r.username}</strong><br><small style="color:var(--text-muted)">${r.full_name || ''}</small></td>
+              <td>${r.email}</td>
+              <td>${r.phone || '-'}</td>
+              <td>${fmt(r.created_at)}</td>
+              <td>
+                <button class="btn btn-success btn-sm" onclick="approveAdminRequest('${r.id}')">Onayla</button>
+                <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="rejectAdminRequest('${r.id}')">Reddet</button>
+              </td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+async function approveAdminRequest(id) {
+  try {
+    await API.approveAdminRequest(id);
+    toast('Kullanici basvurusu onaylandi', 'success');
+    renderUsers(usersPage);
+  } catch (ex) {
+    toast(ex.message, 'error');
+  }
+}
+
+async function rejectAdminRequest(id) {
+  try {
+    await API.rejectAdminRequest(id);
+    toast('Kullanici basvurusu reddedildi', 'success');
+    renderUsers(usersPage);
+  } catch (ex) {
+    toast(ex.message, 'error');
   }
 }
 

@@ -46,6 +46,7 @@ class UserResponse(BaseModel):
     language: str
     address: Optional[AddressSchema]
     created_at: datetime
+    is_super_admin: bool = False
 
 
 class UpdateProfileRequest(BaseModel):
