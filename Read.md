@@ -149,26 +149,60 @@ smartcar-project/
 │
 ├── backend/
 │   ├── app/
+│   │   ├── api/v1/endpoints/
+│   │   │   ├── auth.py
+│   │   │   ├── products.py
+│   │   │   ├── cart_orders.py
+│   │   │   ├── websocket.py
+│   │   │   ├── logs.py
+│   │   │   └── admin.py
+│   │   ├── core/
+│   │   ├── middleware/
+│   │   ├── schemas/
+│   │   └── main.py
 │   ├── uploads/
+│   ├── migrate_admins.py
+│   ├── migrate_roles.py
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   ├── docker-compose.yml
-│   ├── .env.example
-│   └── README.md
+│   └── .env.example
 │
-├── mobile/
-│   ├── lib/
-│   ├── assets/
-│   ├── android/
+├── smartcar_flutter/
 │   ├── ios/
+│   ├── lib/
+│   │   ├── providers/
+│   │   │   ├── models/
+│   │   │   │   └── models.dart
+│   │   │   └── auth_provider.dart
+│   │   ├── screens/
+│   │   │   ├── auth/
+│   │   │   │   ├── login_screen.dart
+│   │   │   │   └── register_screen.dart
+│   │   │   └── main/
+│   │   │       ├── cart_screen.dart
+│   │   │       ├── checkout_screen.dart
+│   │   │       ├── control_screen.dart
+│   │   │       ├── home_screen.dart
+│   │   │       ├── orders_screen.dart
+│   │   │       ├── product_detail_screen.dart
+│   │   │       └── profile_screen.dart
+│   │   ├── services/
+│   │   │   ├── api_client.dart
+│   │   │   ├── auth_service.dart
+│   │   │   ├── cart_service.dart
+│   │   │   ├── orders_service.dart
+│   │   │   └── products_service.dart
+│   │   └── main.dart
+│   ├── test/
+│   │   └── widget_test.dart
+│   ├── .flutter-plugins
+│   ├── .flutter-plugins-dependencies
 │   └── pubspec.yaml
 │
 ├── smartcar_web/
 │   ├── css/
-│   │   └── style.css
-│   │
 │   ├── img/
-│   │
 │   ├── js/
 │   │   ├── api.js
 │   │   ├── app.js
@@ -178,21 +212,18 @@ smartcar-project/
 │   │   ├── control.js
 │   │   ├── effects.js
 │   │   └── products.js
-│   │
-│   ├── index.html
-│   └── README.md
+│   └── index.html
 │
-├── admin/
+├├── admin/
 │   ├── css/
 │   ├── js/
-│   ├── pages/
-│   ├── index.html
-│   └── README.md
+│   │   ├── api.js
+│   │   └── app.js
+│   └── index.html
 │
 ├── hardware/
 │   ├── esp32/
 │   │   └── smartcar.ino
-│   │
 │   ├── circuit/
 │   └── images/
 │
@@ -204,7 +235,8 @@ smartcar-project/
 │
 ├── .gitignore
 ├── LICENSE
-└── README.md
+├── README.md
+
 
 ---
 
