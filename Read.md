@@ -206,18 +206,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Ortam Değişkenlerini Tanımlayın
 
-.env dosyası oluşturun:
 
-```env
-MONGO_URI=
-JWT_SECRET=
-JWT_REFRESH_SECRET=
-REDIS_URL=
-```
-
-### 5. Backend'i Başlatın
+###  Backend'i Başlatın
 
 ```bash
 uvicorn app.main:app --reload
