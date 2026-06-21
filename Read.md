@@ -217,7 +217,7 @@ uvicorn app.main:app --reload
 Backend varsayılan olarak:
 
 ```text
-http://localhost:8000
+http://localhost:......
 ```
 
 adresinde çalışacaktır.
@@ -225,7 +225,7 @@ adresinde çalışacaktır.
 Swagger:
 
 ```text
-http://localhost:8000/docs
+http://localhost:..../docs
 ```
 
 ---
