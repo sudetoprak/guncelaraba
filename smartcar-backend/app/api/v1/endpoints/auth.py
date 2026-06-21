@@ -6,6 +6,7 @@ from app.core.security import (
     create_access_token, create_refresh_token,
     decode_token, get_current_user
 )
+#sistemin tüm kimlik doğrulama (Authentication) işlemlerini yönetiyor.
 from app.schemas.schemas import (
     RegisterRequest, LoginRequest,
     TokenResponse, RefreshRequest, UserResponse
@@ -20,7 +21,7 @@ def serialize_user(user: dict) -> dict:
     user.pop("password_hash", None)
     return user
 
-
+#Email veya kullanıcı adının daha önce kayıtlı olup olmadığını kontrol etmek için kullanılmış.
 async def _email_or_username_exists(db, email: str, username: str) -> bool:
     query = {"$or": [{"email": email}, {"username": username}]}
     return any([
@@ -29,7 +30,7 @@ async def _email_or_username_exists(db, email: str, username: str) -> bool:
         await db.pending_admins.find_one({**query, "status": "pending"}),
     ])
 
-
+# Yeni normal kullanıcı kaydı oluşturmak için kullanılmış.
 @router.post("/register", response_model=TokenResponse)
 async def register(data: RegisterRequest):
     db = get_db()
@@ -56,6 +57,7 @@ async def register(data: RegisterRequest):
         access_token=create_access_token({"sub": user_id, "col": "users"}),
         refresh_token=create_refresh_token({"sub": user_id, "col": "users"}),
     )
+
 
 
 @router.post("/admin-register")

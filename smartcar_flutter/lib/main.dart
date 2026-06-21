@@ -6,6 +6,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/main/home_screen.dart';
 import 'screens/main/cart_screen.dart';
 import 'screens/main/checkout_screen.dart';
+import 'screens/main/orders_screen.dart';
 import 'screens/main/profile_screen.dart';
 
 void main() {
@@ -91,6 +92,18 @@ class _MainTabs extends StatefulWidget {
 class _MainTabsState extends State<_MainTabs> {
   int _tabIndex = 0;
   Key _cartKey = UniqueKey();
+  Key _ordersKey = UniqueKey();
+
+  void _openOrdersAfterCheckout() {
+    setState(() {
+      _checkoutCompleted = true;
+      _cartKey = UniqueKey();
+      _ordersKey = UniqueKey();
+      _tabIndex = 2;
+    });
+  }
+
+  bool _checkoutCompleted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +113,11 @@ class _MainTabsState extends State<_MainTabs> {
         index: _tabIndex,
         children: [
           const HomeScreen(),
-          _CartFlow(key: _cartKey),
+          _CartFlow(
+            key: _cartKey,
+            onOrderSuccess: _openOrdersAfterCheckout,
+          ),
+          OrdersScreen(key: _ordersKey),
           const ProfileScreen(),
         ],
       ),
@@ -113,6 +130,8 @@ class _MainTabsState extends State<_MainTabs> {
           currentIndex: _tabIndex,
           onTap: (i) => setState(() {
             if (i == 1) _cartKey = UniqueKey();
+            if (i == 2 && !_checkoutCompleted) _ordersKey = UniqueKey();
+            _checkoutCompleted = false;
             _tabIndex = i;
           }),
           backgroundColor: Colors.white,
@@ -134,6 +153,11 @@ class _MainTabsState extends State<_MainTabs> {
               label: 'Sepet',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long),
+              label: 'Siparişlerim',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person),
               label: 'Profil',
@@ -148,7 +172,9 @@ class _MainTabsState extends State<_MainTabs> {
 // ─── Cart Flow ────────────────────────────────────────────────────────────────
 
 class _CartFlow extends StatefulWidget {
-  const _CartFlow({super.key});
+  final VoidCallback onOrderSuccess;
+
+  const _CartFlow({super.key, required this.onOrderSuccess});
 
   @override
   State<_CartFlow> createState() => _CartFlowState();
@@ -162,7 +188,7 @@ class _CartFlowState extends State<_CartFlow> {
     if (_checkout) {
       return CheckoutScreen(
         onBack: () => setState(() => _checkout = false),
-        onSuccess: () => setState(() => _checkout = false),
+        onSuccess: widget.onOrderSuccess,
       );
     }
     return CartScreen(onCheckout: () => setState(() => _checkout = true));

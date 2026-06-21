@@ -350,7 +350,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             borderRadius: BorderRadius.circular(14)),
                         elevation: 0,
                       ),
-                      child: const Text('Ana Sayfaya Dön',
+                      child: const Text('Siparişlerime Git',
                           style: TextStyle(
                               color: Colors.white, fontSize: 16,
                               fontWeight: FontWeight.w700)),

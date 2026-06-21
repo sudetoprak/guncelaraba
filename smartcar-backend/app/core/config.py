@@ -2,7 +2,8 @@ from pydantic_settings import BaseSettings
 from typing import List
 import json
 import os
-
+#bu class, uygulamanın tüm yapılandırma ayarlarını merkezi bir yerde tutar. 
+# Ortam değişkenlerinden veya .env dosyasından yüklenebilir. Ayrıca, CORS kökenlerini liste olarak döndüren yardımcı özellikler içerir.
 
 class Settings(BaseSettings):
     MONGO_URI: str = "mongodb://localhost:27017"
@@ -21,6 +22,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     CAR_DEVICE_SECRET: str = "smartcar-esp32-secret-2024"
     SERVER_BASE_URL: str = "http://100.114.176.17:8000"
+
 
     @property
     def cors_origins_list(self) -> List[str]:

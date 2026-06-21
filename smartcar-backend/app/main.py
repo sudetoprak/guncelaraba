@@ -12,7 +12,8 @@ from app.api.v1.endpoints.cart_orders import cart_router, order_router
 from app.api.v1.endpoints.websocket import router as ws_router
 from app.api.v1.endpoints.logs import router as logs_router
 from app.api.v1.endpoints.admin import router as admin_router
-
+#bu dosya app.py, uygulamanın giriş noktasıdır. FastAPI uygulamasını oluşturur, yapılandırır ve tüm rotaları ekler.
+# Ayrıca, veritabanı bağlantısı ve diğer kaynakların yönetimi için bir yaşam döngüsü sağlar.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_db()
@@ -63,4 +64,4 @@ async def health():
 
 @app.get("/")
 async def root():
-    return {"message": "SmartCar API çalışıyor 🚗"}
+    return {"message": "SmartCar API çalışıyor "}

@@ -94,22 +94,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('#${order.id.substring(order.id.length - 8).toUpperCase()}',
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _orderTitle(order),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  color: Color(0xFFF1F5F9),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1)),
-                          const SizedBox(height: 2),
-                          Text(
-                            _formatDate(order.createdAt),
-                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                          ),
-                        ],
+                                color: Color(0xFFF1F5F9),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${_formatDate(order.createdAt)} • #${_shortOrderId(order.id)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -216,5 +228,22 @@ class _OrdersScreenState extends State<OrdersScreen> {
     } catch (_) {
       return isoDate;
     }
+  }
+
+  String _orderTitle(Order order) {
+    if (order.items.isEmpty) return 'Sipariş';
+
+    final firstName = order.items.first.name.tr.trim();
+    if (order.items.length == 1) {
+      return firstName.isEmpty ? 'Sipariş' : firstName;
+    }
+
+    final title = firstName.isEmpty ? 'Sipariş' : firstName;
+    return '$title +${order.items.length - 1} ürün';
+  }
+
+  String _shortOrderId(String id) {
+    final shortId = id.length > 8 ? id.substring(id.length - 8) : id;
+    return shortId.toUpperCase();
   }
 }
