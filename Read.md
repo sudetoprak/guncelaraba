@@ -145,29 +145,66 @@ Araç kontrol sistemi ESP32 tabanlı olarak geliştirilmiştir.
 
 ---
 
-# Proje Yapısı
-
-```text
 smartcar-project/
 │
 ├── backend/
 │   ├── app/
 │   ├── uploads/
-│   ├── Dockerfile
 │   ├── requirements.txt
-│   └── docker-compose.yml
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── .env.example
+│   └── README.md
 │
 ├── mobile/
 │   ├── lib/
 │   ├── assets/
+│   ├── android/
+│   ├── ios/
 │   └── pubspec.yaml
 │
-├── web/
+├── smartcar_web/
+│   ├── css/
+│   │   └── style.css
+│   │
+│   ├── img/
+│   │
+│   ├── js/
+│   │   ├── api.js
+│   │   ├── app.js
+│   │   ├── auth.js
+│   │   ├── cart.js
+│   │   ├── config.js
+│   │   ├── control.js
+│   │   ├── effects.js
+│   │   └── products.js
+│   │
+│   ├── index.html
+│   └── README.md
 │
 ├── admin/
+│   ├── css/
+│   ├── js/
+│   ├── pages/
+│   ├── index.html
+│   └── README.md
 │
+├── hardware/
+│   ├── esp32/
+│   │   └── smartcar.ino
+│   │
+│   ├── circuit/
+│   └── images/
+│
+├── docs/
+│   ├── diagrams/
+│   ├── screenshots/
+│   ├── thesis/
+│   └── api-docs/
+│
+├── .gitignore
+├── LICENSE
 └── README.md
-```
 
 ---
 
